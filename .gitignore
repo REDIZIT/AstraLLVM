@@ -1,0 +1,9 @@
+obj/
+
+.vs/
+bin/
+*.Identifier
+appsettings.json
+
+source.ac
+output.ll
