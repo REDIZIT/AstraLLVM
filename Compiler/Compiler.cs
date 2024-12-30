@@ -4,9 +4,9 @@
     {
         List<Token> tokens = Tokenizer.Tokenize(astraCode);
 
-        Expr root = AbstractSyntaxTreeBuilder.Parse(tokens);
+        var root = AbstractSyntaxTreeBuilder.Parse(tokens);
 
-        string llvm = Generator.Generate(tokens);
+        string llvm = Generator.Generate(root);
 
         return llvm;
     }

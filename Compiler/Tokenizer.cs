@@ -54,13 +54,6 @@
                         value = word
                     };
                 }
-                if (Token_Operator.IsOperator(word))
-                {
-                    token = new Token_Operator()
-                    {
-                        @operator = word
-                    };
-                }
 
                 if (int.TryParse(word, out int _))
                 {
@@ -70,12 +63,14 @@
                     };
                 }
 
-                if (Token_Equality.IsMatch(word)) token = new Token_Equality();
-                if (Token_Comprassion.IsMatch(word)) token = new Token_Comprassion();
-                if (Token_Term.IsMatch(word)) token = new Token_Term();
-                if (Token_Factor.IsMatch(word)) token = new Token_Factor();
+                if (Token_Equality.TryMatch(word, out var eq)) token = eq;
+                if (Token_Comprassion.TryMatch(word, out var cmp)) token = cmp;
+                if (Token_Term.TryMatch(word, out var term)) token = term;
+                if (Token_Factor.TryMatch(word, out var fact)) token = fact;
+
                 if (Token_BracketOpen.IsMatch(word)) token = new Token_BracketOpen();
                 if (Token_BracketClose.IsMatch(word)) token = new Token_BracketClose();
+                if (Token_Print.IsMatch(word)) token = new Token_Print();
 
                 //if (Token_Operator.IsOperator(word))
                 //{

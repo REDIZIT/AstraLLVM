@@ -67,73 +67,6 @@ public class Token_Constant : Token
         b.Append($"i32 {value}\n");
     }
 }
-public class Token_Operator : Token
-{
-    public string @operator;
-
-    public static Dictionary<string, int> predenceByOperator = new()
-    {
-        { "*", 4 },
-        { "/", 4 },
-        { "%", 4 },
-        { "+", 3 },
-        { "-", 3 },
-        { ">", 2 },
-        { "<", 2 },
-        { ">=", 2 },
-        { "<=", 2 },
-        { "==", 2 },
-        { "!=", 2 },
-        { "not", 1 },
-        { "and", 0 },
-        { "or", 0 },
-    };
-
-    public override string ToString()
-    {
-        return base.ToString() + ": " + @operator;
-    }
-
-    public static bool IsOperator(string word)
-    {
-        return predenceByOperator.ContainsKey(word);
-    }
-}
-public class Token_Equality : Token
-{
-    public static bool IsMatch(string word)
-    {
-        return word == "==" || word == "!=";
-    }
-}
-public class Token_Comprassion : Token
-{
-    public static bool IsMatch(string word)
-    {
-        return word == ">" || word == ">=" || word == "<" || word == "<=";
-    }
-}
-public class Token_Term : Token
-{
-    public static bool IsMatch(string word)
-    {
-        return word == "+" || word == "-";
-    }
-}
-public class Token_Factor : Token
-{
-    public static bool IsMatch(string word)
-    {
-        return word == "*" || word == "/";
-    }
-}
-public class Token_Unary : Token
-{
-    public static bool IsMatch(string word)
-    {
-        return word == "!" || word == "-";
-    }
-}
 public class Token_BracketOpen : Token
 {
     public static bool IsMatch(string word)
@@ -146,5 +79,12 @@ public class Token_BracketClose : Token
     public static bool IsMatch(string word)
     {
         return word == ")";
+    }
+}
+public class Token_Print : Token
+{
+    public static bool IsMatch(string word)
+    {
+        return word == "print";
     }
 }

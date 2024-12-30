@@ -3,16 +3,29 @@
     private static List<Token> tokens;
     private static int current;
 
-    public static Expr Parse(List<Token> tokens)
+    public static List<Statement> Parse(List<Token> tokens)
     {
         AbstractSyntaxTreeBuilder.tokens = tokens;
         current = 0;
 
-        Expr expr = Expression();
+        List<Statement> statements = new();
 
-        return expr;
+        while (IsAtEnd() == false)
+        {
+            Statement statement = Statement();
+            statements.Add(statement);
+        }
+        
+
+        return statements;
     }
 
+    private static Statement Statement()
+    {
+        if (Match(typeof(Token_Print))) return PrintStatement();
+
+        return Expression();
+    }
     private static Expr Expression()
     {
         return Equality();
@@ -127,6 +140,15 @@
 
         throw new Exception($"Unknown token '{Peek()}'");
     }
+    private static PrintStmt PrintStatement()
+    {
+        Expr value = Expression();
+        return new PrintStmt()
+        {
+            expression = value
+        };
+    }
+
 
 
     private static bool Match(params Type[] tokenTypes)
@@ -141,7 +163,6 @@
         }
         return false;
     }
-
     private static bool Check(Type tokenType)
     {
         if (IsAtEnd()) return false;
