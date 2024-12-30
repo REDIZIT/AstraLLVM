@@ -30,7 +30,7 @@
 
                 if (ctx.IsPointer(initValue.generatedVariableName))
                 {
-                    string tempName = ctx.NextTempVariableName();
+                    string tempName = ctx.NextTempVariableName("i32");
                     ctx.b.AppendLine($"{tempName} = load i32, i32* {initValue.generatedVariableName}");
                     ctx.b.AppendLine($"store i32 {tempName}, i32* {generatedVariableName}");
                 }

@@ -1,7 +1,7 @@
 ﻿public class Node_Binary : Node
 {
     public Node left, right;
-    public Token @operator;
+    public Token_Operator @operator;
 
     public override void Generate(Generator.Context ctx)
     {
@@ -10,27 +10,49 @@
         left.Generate(ctx);
         right.Generate(ctx);
 
-        string asmOperatorName = ((Token_Operator)@operator).asmOperatorName;
+        string leftName = Utils.SureNotPointer(left.generatedVariableName, ctx);
+        string rightName = Utils.SureNotPointer(right.generatedVariableName, ctx);
 
+        string resultType = @operator.ResultType;
 
-        string leftName = left.generatedVariableName;
-        if (ctx.IsPointer(leftName))
+        generatedVariableName = ctx.NextTempVariableName(resultType);
+        ctx.b.AppendLine($"{generatedVariableName} = {@operator.asmOperatorName} i32 {leftName}, {rightName}");
+
+        ctx.b.AppendLine();
+    }
+}
+
+public class Node_Unary : Node
+{
+    public Node right;
+    public Token_Operator @operator;
+
+    public override void Generate(Generator.Context ctx)
+    {
+        base.Generate(ctx);
+
+        right.Generate(ctx);
+
+        string rightName = Utils.SureNotPointer(right.generatedVariableName, ctx);
+
+        // Logical not
+        if (@operator.asmOperatorName == "not")
         {
-            leftName = ctx.NextTempVariableName();
-            ctx.b.AppendLine($"{leftName} = load i32, i32* {left.generatedVariableName}");
+            string rightType = ctx.GetVariableType(rightName);
+            string tempName = ctx.NextTempVariableName("i1");
+            ctx.b.AppendLine($"{tempName} = icmp sle {rightType} {rightName}, 0");
+
+            generatedVariableName = tempName;
         }
 
-
-        string rightName = right.generatedVariableName;
-        if (ctx.IsPointer(rightName))
+        if (@operator.asmOperatorName == "-")
         {
-            rightName = ctx.NextTempVariableName();
-            ctx.b.AppendLine($"{rightName} = load i32, i32* {right.generatedVariableName}");
-        }
-        
+            string rightType = ctx.GetVariableType(rightName);
+            string tempName = ctx.NextTempVariableName("i1");
+            ctx.b.AppendLine($"{tempName} = sub {rightType} 0, {rightName}");
 
-        generatedVariableName = ctx.NextTempVariableName();
-        ctx.b.AppendLine($"{generatedVariableName} = {asmOperatorName} i32 {leftName}, {rightName}");
+            generatedVariableName = tempName;
+        }
 
         ctx.b.AppendLine();
     }

@@ -1,17 +1,27 @@
 ﻿public abstract class Token_Operator : Token
 {
+    public virtual string ResultType => "i32";
+
     public string asmOperatorName;
+
+    public override string ToString()
+    {
+        return base.ToString() + ": " + asmOperatorName;
+    }
 }
 public class Token_Equality : Token_Operator
 {
+    public override string ResultType => "i1";
+
     public static bool TryMatch(string word, out Token_Equality op)
     {
         if (IsMatch(word))
         {
-            op = new Token_Equality()
-            {
-                asmOperatorName = word
-            };
+            op = new Token_Equality();
+
+            if (word == "==") op.asmOperatorName = "icmp eq";
+            if (word == "!=") op.asmOperatorName = "icmp ne";
+
             return true;
         }
 
@@ -25,14 +35,19 @@ public class Token_Equality : Token_Operator
 }
 public class Token_Comprassion : Token_Operator
 {
+    public override string ResultType => "i1";
+
     public static bool TryMatch(string word, out Token_Comprassion op)
     {
         if (IsMatch(word))
         {
-            op = new Token_Comprassion()
-            {
-                asmOperatorName = word
-            };
+            op = new Token_Comprassion();
+
+            if (word == ">") op.asmOperatorName = "icmp sgt";
+            if (word == ">=") op.asmOperatorName = "icmp sge";
+            if (word == "<") op.asmOperatorName = "icmp slt";
+            if (word == "<=") op.asmOperatorName = "icmp sle";
+
             return true;
         }
 
@@ -98,6 +113,7 @@ public class Token_Unary : Token_Operator
             {
                 asmOperatorName = word
             };
+
             return true;
         }
 
@@ -106,6 +122,6 @@ public class Token_Unary : Token_Operator
     }
     public static bool IsMatch(string word)
     {
-        return word == "!" || word == "-";
+        return word == "not" || word == "-";
     }
 }

@@ -10,6 +10,8 @@ public static class Generator
         public int tempVariablesCount = 0;
         public int localVariablesCount = 0;
 
+        public Dictionary<string, string> typeByVariableName = new();
+
         public string NextStackUnnamedVariableName()
         {
             string varName = $"%local_{localVariablesCount}";
@@ -17,11 +19,12 @@ public static class Generator
             stackVariables.Add(varName);
             return varName;
         }
-        public string NextTempVariableName()
+        public string NextTempVariableName(string type)
         {
             string varName = $"%tmp_{tempVariablesCount}";
             tempVariablesCount++;
             tempVariables.Add(varName);
+            typeByVariableName.Add(varName, type);
             return varName;
         }
         public string RegisterStackVariable(string name)
@@ -34,6 +37,11 @@ public static class Generator
         public bool IsPointer(string generatedName)
         {
             return stackVariables.Contains(generatedName);
+        }
+
+        public string GetVariableType(string variableName)
+        {
+            return typeByVariableName[variableName];
         }
     }
 
@@ -72,7 +80,7 @@ public static class Generator
                 depth--;
             }
             
-            if (depth > 0)
+            if (depth > 0 && line.Contains(":") == false)
             {
                 lines[i] = '\t' + line;
             }

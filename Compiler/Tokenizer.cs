@@ -40,10 +40,14 @@
             };
         }
 
+        // Unary '-' negate must be higher Binary '-' sub operator
+        if (Token_Unary.TryMatch(word, out var un)) return un;
+
         if (Token_Equality.TryMatch(word, out var eq)) return eq;
         if (Token_Comprassion.TryMatch(word, out var cmp)) return cmp;
         if (Token_Term.TryMatch(word, out var term)) return term;
         if (Token_Factor.TryMatch(word, out var fact)) return fact;
+        
 
         if (Token_BracketOpen.IsMatch(word)) return new Token_BracketOpen();
         if (Token_BracketClose.IsMatch(word)) return new Token_BracketClose();

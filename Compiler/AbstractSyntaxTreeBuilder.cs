@@ -122,7 +122,7 @@
             expr = new Node_Binary()
             {
                 left = expr,
-                @operator = @operator,
+                @operator = (Token_Operator)@operator,
                 right = right
             };
         }
@@ -140,7 +140,7 @@
             expr = new Node_Binary()
             {
                 left = expr,
-                @operator = @operator,
+                @operator = (Token_Operator)@operator,
                 right = right
             };
         }
@@ -158,7 +158,7 @@
             expr = new Node_Binary()
             {
                 left = expr,
-                @operator = @operator,
+                @operator = (Token_Operator)@operator,
                 right = right
             };
         }
@@ -176,7 +176,7 @@
             expr = new Node_Binary()
             {
                 left = expr,
-                @operator = @operator,
+                @operator = (Token_Operator)@operator,
                 right = right
             };
         }
@@ -185,13 +185,13 @@
     }
     private static Node Unary()
     {
-        while (Match(typeof(Token_Factor)))
+        while (Match(typeof(Token_Unary)))
         {
             Token @operator = Previous();
             Node right = Unary();
-            return new Expr_Unray()
+            return new Node_Unary()
             {
-                @operator = @operator,
+                @operator = (Token_Operator)@operator,
                 right = right
             };
         }

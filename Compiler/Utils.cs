@@ -11,7 +11,7 @@
         }
         else if (isPtr_source && isPtr_dest)
         {
-            string tempName = ctx.NextTempVariableName();
+            string tempName = ctx.NextTempVariableName("i32");
             ctx.b.AppendLine($"{tempName} = load i32, i32* {sourceVarName}");
             ctx.b.AppendLine($"store i32 {tempName}, i32* {destVarName}");
         }
@@ -23,9 +23,10 @@
     public static string SureNotPointer(string varName, Generator.Context ctx)
     {
         if (ctx.IsPointer(varName) == false) return varName;
-        
-        string tempName = ctx.NextTempVariableName();
-        ctx.b.AppendLine($"{tempName} = load i32, i32* {varName}");
+
+        string type = ctx.typeByVariableName.ContainsKey(varName) ? ctx.GetVariableType(varName) : "i32";
+        string tempName = ctx.NextTempVariableName(type);
+        ctx.b.AppendLine($"{tempName} = load {type}, {type}* {varName}");
         return tempName;
     }
 }
