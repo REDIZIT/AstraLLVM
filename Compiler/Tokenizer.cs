@@ -12,7 +12,7 @@
         { "else", typeof(Token_Else) },
         { "while", typeof(Token_While) },
         { "for", typeof(Token_For) },
-        { ";", typeof(Token_Semicolon) },
+        { ";", typeof(Token_Terminator) },
         { ",", typeof(Token_Comma) },
         { "fn", typeof(Token_Fn) },
         { "return", typeof(Token_Return) },
@@ -22,48 +22,102 @@
     {
         List<Token> tokens = new();
 
-        rawCode = rawCode.Replace("\r", "").Replace("\t", "");
-        string[] lines = rawCode.Split('\n');
+        bool isCollecting_Constant = false;
 
-        for (int li = 0; li < lines.Length; li++)
+        int ci = 0;
+        string word = "";
+        while (ci < rawCode.Length)
         {
-            string line = lines[li];
-            if (string.IsNullOrWhiteSpace(line)) continue;
+            char currentChar = rawCode[ci++];
 
-            string[] words = line.Split(' ');
-
-            for (int wi = 0; wi < words.Length; wi++)
+            // Skip spaces and tabs
+            if (currentChar == '\t' || currentChar == ' ')
             {
-                string word = words[wi];
-                Token token = Tokenize(ref wi, words);
-
-                if (token == null) throw new Exception($"Failed to tokenize word '{word}'");
-
-                tokens.Add(token);
+                continue;
             }
 
 
-            if (tokens.Last() is Token_Terminator == false)
+            // Start tokenize constant value (int, float, double)
+            if (char.IsDigit(currentChar))
             {
-                tokens.Add(new Token_Terminator());
+                isCollecting_Constant = true;
+                word += currentChar;
+                continue;
+            }
+            else
+            {
+                if (isCollecting_Constant)
+                {
+                    if (int.TryParse(word, out int _))
+                    {
+                        tokens.Add(new Token_Constant()
+                        {
+                            value = word
+                        });
+                    }
+                    word = "";
+                }
+                isCollecting_Constant = false;
+            }
+
+
+            // On line end reach
+            if (currentChar == '\r' || currentChar == '\n')
+            {
+                // If line reached, but word has not be recognized
+                if (word != "")
+                {
+                    if (Token_Identifier.IsMatch(word))
+                    {
+                        tokens.Add(new Token_Identifier()
+                        {
+                            name = word
+                        });
+                    }
+                    else
+                    {
+                        throw new Exception($"Failed to tokenize word '{word}'");
+                    }
+                }
+
+                TerminateLine(tokens);
+                word = "";
+                continue;
+            }            
+
+
+            // Try tokenize single char
+            Token token = TryTokenize(currentChar.ToString());
+            if (token != null)
+            {
+                if (Token_Identifier.IsMatch(word))
+                {
+                    tokens.Add(new Token_Identifier()
+                    {
+                        name = word
+                    });
+                    word = "";
+                }
+            }
+
+
+            // Try tokenize whole word
+            word += currentChar;
+
+            token = TryTokenize(word);
+            if (token != null)
+            {
+                tokens.Add(token);
+                word = "";
+                continue;
             }
         }
 
         return tokens;
     }
 
-    private static Token Tokenize(ref int wi, string[] words)
+    private static Token TryTokenize(string word)
     {
-        string word = words[wi];
-;
-        if (int.TryParse(word, out int _))
-        {
-            return new Token_Constant()
-            {
-                value = word
-            };
-        }
-
         // Unary '-' negate must be higher Binary '-' sub operator
         if (Token_Unary.TryMatch(word, out var un)) return un;
 
@@ -78,15 +132,14 @@
             return (Token)Activator.CreateInstance(tokenType);
         }
 
-        // Should be the last one
-        if (Token_Identifier.IsMatch(word))
-        {
-            return new Token_Identifier()
-            {
-                name = word
-            };
-        }
-
         return null;
+    }
+
+    private static void TerminateLine(List<Token> tokens)
+    {
+        if (tokens.Last() is Token_Terminator == false)
+        {
+            tokens.Add(new Token_Terminator());
+        }
     }
 }

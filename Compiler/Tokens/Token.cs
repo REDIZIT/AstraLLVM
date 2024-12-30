@@ -58,9 +58,6 @@ public class Token_While : Token
 public class Token_For : Token
 {
 }
-public class Token_Semicolon : Token_Terminator
-{
-}
 public class Token_Comma : Token
 {
 }

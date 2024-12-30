@@ -104,9 +104,9 @@
     {
         Consume(typeof(Token_BracketOpen), "Expected '(' after 'for'");
         Node declaration = Declaration();
-        Consume(typeof(Token_Semicolon), "Expected ';' after declaration");
+        Consume(typeof(Token_Terminator), "Expected ';' after declaration");
         Node condition = Expression();
-        Consume(typeof(Token_Semicolon), "Expected ';' after condition");
+        Consume(typeof(Token_Terminator), "Expected ';' after condition");
         Node action = Expression();
         Consume(typeof(Token_BracketClose), "Expected ')' after action");
 
