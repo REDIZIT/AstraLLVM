@@ -47,13 +47,6 @@ public class Token_Block : Token
         b.AppendLine(isClosing ? "}" : "{");
     }
 }
-public class Token_Return : Token
-{
-    public override void Generate(StringBuilder b)
-    {
-        b.Append("ret ");
-    }
-}
 public class Token_Constant : Token
 {
     public string value;
@@ -155,5 +148,26 @@ public class Token_Semicolon : Token
     public static bool IsMatch(string word)
     {
         return word == ";";
+    }
+}
+public class Token_Comma : Token
+{
+    public static bool IsMatch(string word)
+    {
+        return word == ",";
+    }
+}
+public class Token_Fn : Token
+{
+    public static bool IsMatch(string word)
+    {
+        return word == "fn";
+    }
+}
+public class Token_Return : Token
+{
+    public static bool IsMatch(string word)
+    {
+        return word == "return";
     }
 }

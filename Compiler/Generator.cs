@@ -49,18 +49,18 @@ public static class Generator
     {
         Context ctx = new();
 
-        ctx.b.AppendLine("define i32 @main()");
-        ctx.b.AppendLine("{");
-        ctx.b.AppendLine("entry:");
+        //ctx.b.AppendLine("define i32 @main()");
+        //ctx.b.AppendLine("{");
+        //ctx.b.AppendLine("entry:");
 
         foreach (Node statement in statements)
         {
             statement.Generate(ctx);
         }
 
-        ctx.b.AppendLine("%res = load i32, i32* %my_value");
-        ctx.b.AppendLine("ret i32 %res");
-        ctx.b.AppendLine("}");
+        //ctx.b.AppendLine("%res = load i32, i32* %my_value");
+        //ctx.b.AppendLine("ret i32 %res");
+        //ctx.b.AppendLine("}");
 
         return FormatLLVM(ctx.b.ToString());
     }

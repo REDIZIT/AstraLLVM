@@ -67,6 +67,9 @@
         if (Token_For.IsMatch(word)) return new Token_For();
 
         if (Token_Semicolon.IsMatch(word)) return new Token_Semicolon();
+        if (Token_Comma.IsMatch(word)) return new Token_Comma();
+        if (Token_Fn.IsMatch(word)) return new Token_Fn();
+        if (Token_Return.IsMatch(word)) return new Token_Return();
 
 
         // Should be the last one

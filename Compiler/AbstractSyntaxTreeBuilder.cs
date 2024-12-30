@@ -23,8 +23,39 @@
     private static Node Declaration()
     {
         if (Match(typeof(Token_Type))) return VariableDeclaration();
+        if (Match(typeof(Token_Fn))) return FunctionDeclaration();
 
         return Statement();
+    }
+    private static Node FunctionDeclaration()
+    {
+        //Consume(typeof(Token_Fn), "Expected 'fn' before function declaration.");
+        return Function();
+    }
+    private static Node Function()
+    {
+        Token_Identifier functionName = Consume<Token_Identifier>("Expected function name");
+        Consume<Token_BracketOpen>("Expected '(' after function name");
+
+        List<Token> parameters = new();
+        if (Check(typeof(Token_BracketClose)) == false)
+        {
+            do
+            {
+                parameters.Add(Consume<Token_Identifier>("Expect parameter name."));
+            } while (Match(typeof(Token_Comma)));
+        }
+
+        Consume<Token_BracketClose>("Expected ')' after parameters");
+
+        Consume<Token_BlockOpen>("Expected '}' before function body");
+        Node body = Block();
+        return new Node_Function()
+        {
+            name = functionName.name,
+            body = body,
+        };
+
     }
     private static Node VariableDeclaration()
     {
@@ -49,8 +80,25 @@
         if (Match(typeof(Token_If))) return If();
         if (Match(typeof(Token_While))) return While();
         if (Match(typeof(Token_For))) return For();
+        if (Match(typeof(Token_Return))) return Return();
 
         return Expression();
+    }
+    private static Node Return()
+    {
+        if (Match(typeof(Token_Semicolon)))
+        {
+            return new Node_Return();
+        }
+        else
+        {
+            Node expr = Expression();
+            Consume<Token_Semicolon>("Expected ';' after return");
+            return new Node_Return()
+            {
+                expr = expr
+            };
+        }
     }
     private static Node For()
     {
@@ -244,7 +292,45 @@
             };
         }
 
-        return Primary();
+        return Call();
+    }
+    private static Node Call()
+    {
+        Node expr = Primary();
+
+        while (true)
+        {
+            if (Match(typeof(Token_BracketOpen)))
+            {
+                expr = FinishCall(expr);
+            }
+            else
+            {
+                break;
+            }
+        }
+
+        return expr;
+    }
+    private static Node FinishCall(Node caller)
+    {
+        List<Node> arguments = new();
+
+        if (Check(typeof(Token_BracketClose)) == false)
+        {
+            do
+            {
+                arguments.Add(Expression());
+            }
+            while (Match(typeof(Token_Comma)));
+        }
+
+        Consume(typeof(Token_BracketClose), "Expected ')' after arguments for function call");
+        return new Node_Call()
+        {
+            caller = caller,
+            arguments = arguments,
+        };
     }
     private static Node Primary()
     {
@@ -275,7 +361,7 @@
             };
         }
 
-        throw new Exception($"Failed to build Node for token '{Peek()}'");
+        throw new Exception($"Totally unexpected token '{Peek()}'");
     }
     private static Node_PrintStatement PrintStatement()
     {
@@ -321,6 +407,10 @@
     private static Token Previous()
     {
         return tokens[current - 1];
+    }
+    private static T Consume<T>(string errorMessage) where T : Token
+    {
+        return (T)Consume(typeof(T), errorMessage);
     }
     private static Token Consume(Type awaitingTokenType, string errorMessage)
     {
