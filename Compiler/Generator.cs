@@ -41,24 +41,20 @@ public static class Generator
     {
         Context ctx = new();
 
+        ctx.b.AppendLine("define i32 @main()");
+        ctx.b.AppendLine("{");
+        ctx.b.AppendLine("entry:");
+
         foreach (Node statement in statements)
         {
-            //Dictionary<int, List<Node>> exprsByDepth = new();
-            //statement.AppendToFlatTree(exprsByDepth, 0);
-
-            //for (int di = exprsByDepth.Count - 1; di >= 0; di--)
-            //{
-            //    for (int ri = 0; ri < exprsByDepth[di].Count; ri++)
-            //    {
-            //        Node expression = exprsByDepth[di][ri];
-            //        expression.Generate(ctx);
-            //    }
-            //}
-
             statement.Generate(ctx);
         }
 
-        return $"define i32 @main() {{\nentry:\n{FormatLLVM(ctx.b.ToString())}\nret i32 %tmp_5\n}}";
+        ctx.b.AppendLine("%res = load i32, i32* %my_value");
+        ctx.b.AppendLine("ret i32 %res");
+        ctx.b.AppendLine("}");
+
+        return FormatLLVM(ctx.b.ToString());
     }
 
 

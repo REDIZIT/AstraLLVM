@@ -108,3 +108,31 @@ public class Token_Assign : Token
         return word == "=";
     }
 }
+public class Token_BlockOpen : Token
+{
+    public static bool IsMatch(string word)
+    {
+        return word == "{";
+    }
+}
+public class Token_BlockClose : Token
+{
+    public static bool IsMatch(string word)
+    {
+        return word == "}";
+    }
+}
+public class Token_If : Token
+{
+    public static bool IsMatch(string word)
+    {
+        return word == "if";
+    }
+}
+public class Token_Else : Token
+{
+    public static bool IsMatch(string word)
+    {
+        return word == "else";
+    }
+}

@@ -51,6 +51,16 @@
 
         if (word == "var") return new Token_Type();
 
+        if (Token_Assign.IsMatch(word)) return new Token_Assign();
+
+        if (Token_BlockOpen.IsMatch(word)) return new Token_BlockOpen();
+        if (Token_BlockClose.IsMatch(word)) return new Token_BlockClose();
+
+        if (Token_If.IsMatch(word)) return new Token_If();
+        if (Token_Else.IsMatch(word)) return new Token_Else();
+
+
+        // Should be the last one
         if (Token_Identifier.IsMatch(word))
         {
             return new Token_Identifier()
@@ -58,9 +68,6 @@
                 name = word
             };
         }
-
-        if (Token_Assign.IsMatch(word)) return new Token_Assign();
-
 
         return null;
     }

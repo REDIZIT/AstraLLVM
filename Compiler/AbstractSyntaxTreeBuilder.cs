@@ -45,8 +45,46 @@
     private static Node Statement()
     {
         if (Match(typeof(Token_Print))) return PrintStatement();
+        if (Match(typeof(Token_BlockOpen))) return Block();
+        if (Match(typeof(Token_If))) return If();
 
         return Expression();
+    }
+    private static Node If()
+    {
+        Consume(typeof(Token_BracketOpen), "Expected '(' before condition.");
+        Node condition = Expression();
+        Consume(typeof(Token_BracketClose), "Expected ')' after condition.");
+
+        Node thenBranch = Statement();
+        Node elseBranch = null;
+
+        if (Match(typeof(Token_Else)))
+        {
+            elseBranch = Statement();
+        }
+
+        return new Node_If()
+        {
+            condition = condition,
+            thenBranch = thenBranch,
+            elseBranch = elseBranch
+        };
+    }
+    private static Node Block()
+    {
+        List<Node> nodes = new();
+
+        while (Check(typeof(Token_BlockClose)) == false && IsAtEnd() == false)
+        {
+            nodes.Add(Declaration());
+        }
+
+        Consume(typeof(Token_BlockClose), "Expect '}' after block.");
+        return new Node_Block()
+        {
+            children = nodes
+        };
     }
     private static Node Expression()
     {
