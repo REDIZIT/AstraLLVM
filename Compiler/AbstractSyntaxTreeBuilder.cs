@@ -42,15 +42,6 @@
             initValue = initValue
         };
     }
-    private static Node VariableUse()
-    {
-        Token_Identifier varNameToken = (Token_Identifier)Previous();
-
-        return new Node_VariableUse()
-        {
-            variableName = varNameToken.name
-        };
-    }
     private static Node Statement()
     {
         if (Match(typeof(Token_Print))) return PrintStatement();
@@ -59,7 +50,28 @@
     }
     private static Node Expression()
     {
-        return Equality();
+        return Assignment();
+    }
+    private static Node Assignment()
+    {
+        Node expr = Equality();
+
+        if (Match(typeof(Token_Assign)))
+        {
+            Token_Assign token = (Token_Assign)Previous();
+            Node value = Assignment();
+
+            if (expr is Node_VariableUse variableUse)
+            {
+                return new Node_VariableAssign()
+                {
+                    variableName = variableUse.variableName,
+                    value = value
+                };
+            }
+        }
+
+        return expr;
     }
     private static Node Equality()
     {
@@ -154,7 +166,7 @@
         {
             return new Node_Literal()
             {
-                value = Previous()
+                constant = (Token_Constant)Previous()
             };
         }
 

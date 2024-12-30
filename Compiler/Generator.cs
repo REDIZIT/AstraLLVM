@@ -58,7 +58,7 @@ public static class Generator
             statement.Generate(ctx);
         }
 
-        return FormatLLVM(ctx.b.ToString());
+        return $"define i32 @main() {{\nentry:\n{FormatLLVM(ctx.b.ToString())}\nret i32 %tmp_5\n}}";
     }
 
 

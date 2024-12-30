@@ -31,42 +31,7 @@
     private static Token Tokenize(ref int wi, string[] words)
     {
         string word = words[wi];
-
-        //if (word == "def")
-        //{
-        //    token = new Token_FunctionDefine()
-        //    {
-        //        name = words[wi + 1].Split('(')[0]
-        //    };
-
-        //    wi = words.Length;
-        //}
-        //if (word.Contains('(') && word.Contains(')'))
-        //{
-        //    token = new Token_FunctionCall()
-        //    {
-        //        name = word.Split('(')[0]
-        //    };
-        //}
-        //if (word == "{" || word == "}")
-        //{
-        //    token = new Token_Block()
-        //    {
-        //        isClosing = word == "}"
-        //    };
-        //}
-        //if (word == "return")
-        //{
-        //    token = new Token_Return();
-        //}
-        //if (int.TryParse(word, out _))
-        //{
-        //    token = new Token_Constant()
-        //    {
-        //        value = word
-        //    };
-        //}
-
+;
         if (int.TryParse(word, out int _))
         {
             return new Token_Constant()
