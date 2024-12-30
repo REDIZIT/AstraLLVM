@@ -136,3 +136,24 @@ public class Token_Else : Token
         return word == "else";
     }
 }
+public class Token_While : Token
+{
+    public static bool IsMatch(string word)
+    {
+        return word == "while";
+    }
+}
+public class Token_For : Token
+{
+    public static bool IsMatch(string word)
+    {
+        return word == "for";
+    }
+}
+public class Token_Semicolon : Token
+{
+    public static bool IsMatch(string word)
+    {
+        return word == ";";
+    }
+}

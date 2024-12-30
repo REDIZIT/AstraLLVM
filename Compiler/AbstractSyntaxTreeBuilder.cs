@@ -47,8 +47,56 @@
         if (Match(typeof(Token_Print))) return PrintStatement();
         if (Match(typeof(Token_BlockOpen))) return Block();
         if (Match(typeof(Token_If))) return If();
+        if (Match(typeof(Token_While))) return While();
+        if (Match(typeof(Token_For))) return For();
 
         return Expression();
+    }
+    private static Node For()
+    {
+        Consume(typeof(Token_BracketOpen), "Expected '(' after 'for'");
+        Node declaration = Declaration();
+        Consume(typeof(Token_Semicolon), "Expected ';' after declaration");
+        Node condition = Expression();
+        Consume(typeof(Token_Semicolon), "Expected ';' after condition");
+        Node action = Expression();
+        Consume(typeof(Token_BracketClose), "Expected ')' after action");
+
+        Node body = Statement();
+
+        return new Node_Block()
+        {
+            children = new List<Node>()
+            {
+                declaration,
+                new Node_While()
+                {
+                    condition = condition,
+                    body = new Node_Block()
+                    {
+                        children = new List<Node>()
+                        {
+                            body,
+                            action
+                        }
+                    }
+                }
+            }
+        };
+    }
+    private static Node While()
+    {
+        Consume(typeof(Token_BracketOpen), "Expected '(' before condition.");
+        Node condition = Expression();
+        Consume(typeof(Token_BracketClose), "Expected ')' after condition.");
+
+        Node body = Statement();
+
+        return new Node_While()
+        {
+            condition = condition,
+            body = body
+        };
     }
     private static Node If()
     {
@@ -227,7 +275,7 @@
             };
         }
 
-        throw new Exception($"Unknown token '{Peek()}'");
+        throw new Exception($"Failed to build Node for token '{Peek()}'");
     }
     private static Node_PrintStatement PrintStatement()
     {

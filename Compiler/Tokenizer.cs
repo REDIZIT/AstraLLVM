@@ -63,6 +63,11 @@
         if (Token_If.IsMatch(word)) return new Token_If();
         if (Token_Else.IsMatch(word)) return new Token_Else();
 
+        if (Token_While.IsMatch(word)) return new Token_While();
+        if (Token_For.IsMatch(word)) return new Token_For();
+
+        if (Token_Semicolon.IsMatch(word)) return new Token_Semicolon();
+
 
         // Should be the last one
         if (Token_Identifier.IsMatch(word))
