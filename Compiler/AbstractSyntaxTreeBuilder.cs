@@ -2,43 +2,74 @@
 {
     private static List<Token> tokens;
     private static int current;
+    private static List<Node> statements;
 
-    public static List<Statement> Parse(List<Token> tokens)
+    public static List<Node> Parse(List<Token> tokens)
     {
         AbstractSyntaxTreeBuilder.tokens = tokens;
         current = 0;
 
-        List<Statement> statements = new();
+        statements = new();
 
         while (IsAtEnd() == false)
         {
-            Statement statement = Statement();
-            statements.Add(statement);
+            statements.Add(Declaration());
         }
         
 
         return statements;
     }
 
-    private static Statement Statement()
+    private static Node Declaration()
+    {
+        if (Match(typeof(Token_Type))) return VariableDeclaration();
+
+        return Statement();
+    }
+    private static Node VariableDeclaration()
+    {
+        Token_Identifier varNameToken = (Token_Identifier)Consume(typeof(Token_Identifier), "Expect variable name.");
+
+        Node initValue = null;
+        if (Match(typeof(Token_Assign)))
+        {
+            initValue = Expression();
+        }
+
+        return new Node_VariableDeclaration()
+        {
+            variableName = varNameToken.name,
+            initValue = initValue
+        };
+    }
+    private static Node VariableUse()
+    {
+        Token_Identifier varNameToken = (Token_Identifier)Previous();
+
+        return new Node_VariableUse()
+        {
+            variableName = varNameToken.name
+        };
+    }
+    private static Node Statement()
     {
         if (Match(typeof(Token_Print))) return PrintStatement();
 
         return Expression();
     }
-    private static Expr Expression()
+    private static Node Expression()
     {
         return Equality();
     }
-    private static Expr Equality()
+    private static Node Equality()
     {
-        Expr expr = Comprassion();
+        Node expr = Comprassion();
 
         while (Match(typeof(Token_Equality)))
         {
             Token @operator = Previous();
-            Expr right = Comprassion();
-            expr = new Expr_Binary()
+            Node right = Comprassion();
+            expr = new Node_Binary()
             {
                 left = expr,
                 @operator = @operator,
@@ -48,15 +79,15 @@
 
         return expr;
     }
-    private static Expr Comprassion()
+    private static Node Comprassion()
     {
-        Expr expr = Term();
+        Node expr = Term();
 
         while (Match(typeof(Token_Comprassion)))
         {
             Token @operator = Previous();
-            Expr right = Term();
-            expr = new Expr_Binary()
+            Node right = Term();
+            expr = new Node_Binary()
             {
                 left = expr,
                 @operator = @operator,
@@ -66,15 +97,15 @@
 
         return expr;
     }
-    private static Expr Term()
+    private static Node Term()
     {
-        Expr expr = Factor();
+        Node expr = Factor();
 
         while (Match(typeof(Token_Term)))
         {
             Token @operator = Previous();
-            Expr right = Factor();
-            expr = new Expr_Binary()
+            Node right = Factor();
+            expr = new Node_Binary()
             {
                 left = expr,
                 @operator = @operator,
@@ -84,15 +115,15 @@
 
         return expr;
     }
-    private static Expr Factor()
+    private static Node Factor()
     {
-        Expr expr = Unary();
+        Node expr = Unary();
 
         while (Match(typeof(Token_Factor)))
         {
             Token @operator = Previous();
-            Expr right = Unary();
-            expr = new Expr_Binary()
+            Node right = Unary();
+            expr = new Node_Binary()
             {
                 left = expr,
                 @operator = @operator,
@@ -102,12 +133,12 @@
 
         return expr;
     }
-    private static Expr Unary()
+    private static Node Unary()
     {
         while (Match(typeof(Token_Factor)))
         {
             Token @operator = Previous();
-            Expr right = Unary();
+            Node right = Unary();
             return new Expr_Unray()
             {
                 @operator = @operator,
@@ -117,20 +148,28 @@
 
         return Primary();
     }
-    private static Expr Primary()
+    private static Node Primary()
     {
         if (Match(typeof(Token_Constant)))
         {
-            return new Expr_Literal()
+            return new Node_Literal()
             {
                 value = Previous()
+            };
+        }
+
+        if (Match(typeof(Token_Identifier)))
+        {
+            return new Node_VariableUse()
+            {
+                variableName = ((Token_Identifier)Previous()).name
             };
         }
 
 
         if (Match(typeof(Token_BracketOpen)))
         {
-            Expr expr = Expression();
+            Node expr = Expression();
             Consume(typeof(Token_BracketClose), "Expect ')' after expression.");
             return new Expr_Grouping()
             {
@@ -140,10 +179,10 @@
 
         throw new Exception($"Unknown token '{Peek()}'");
     }
-    private static PrintStmt PrintStatement()
+    private static Node_PrintStatement PrintStatement()
     {
-        Expr value = Expression();
-        return new PrintStmt()
+        Node value = Expression();
+        return new Node_PrintStatement()
         {
             expression = value
         };

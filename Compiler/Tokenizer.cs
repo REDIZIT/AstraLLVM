@@ -17,69 +17,7 @@
             for (int wi = 0; wi < words.Length; wi++)
             {
                 string word = words[wi];
-
-                Token token = null;
-
-                if (word == "def")
-                {
-                    token = new Token_FunctionDefine()
-                    {
-                        name = words[wi+1].Split('(')[0]
-                    };
-
-                    wi = words.Length;
-                }
-                if (word.Contains('(') && word.Contains(')'))
-                {
-                    token = new Token_FunctionCall()
-                    {
-                        name = word.Split('(')[0]
-                    };
-                }
-                if (word == "{" || word == "}")
-                {
-                    token = new Token_Block()
-                    {
-                        isClosing = word == "}"
-                    };
-                }
-                if (word == "return")
-                {
-                    token = new Token_Return();
-                }
-                if (int.TryParse(word, out _))
-                {
-                    token = new Token_Constant()
-                    {
-                        value = word
-                    };
-                }
-
-                if (int.TryParse(word, out int _))
-                {
-                    token = new Token_Constant()
-                    {
-                        value = word
-                    };
-                }
-
-                if (Token_Equality.TryMatch(word, out var eq)) token = eq;
-                if (Token_Comprassion.TryMatch(word, out var cmp)) token = cmp;
-                if (Token_Term.TryMatch(word, out var term)) token = term;
-                if (Token_Factor.TryMatch(word, out var fact)) token = fact;
-
-                if (Token_BracketOpen.IsMatch(word)) token = new Token_BracketOpen();
-                if (Token_BracketClose.IsMatch(word)) token = new Token_BracketClose();
-                if (Token_Print.IsMatch(word)) token = new Token_Print();
-
-                //if (Token_Operator.IsOperator(word))
-                //{
-                //    token = new Token_Operator()
-                //    {
-                //        @operator = word
-                //    };
-                //}
-
+                Token token = Tokenize(ref wi, words);
 
                 if (token == null) throw new Exception($"Failed to tokenize word '{word}'");
 
@@ -88,5 +26,77 @@
         }
 
         return tokens;
+    }
+
+    private static Token Tokenize(ref int wi, string[] words)
+    {
+        string word = words[wi];
+
+        //if (word == "def")
+        //{
+        //    token = new Token_FunctionDefine()
+        //    {
+        //        name = words[wi + 1].Split('(')[0]
+        //    };
+
+        //    wi = words.Length;
+        //}
+        //if (word.Contains('(') && word.Contains(')'))
+        //{
+        //    token = new Token_FunctionCall()
+        //    {
+        //        name = word.Split('(')[0]
+        //    };
+        //}
+        //if (word == "{" || word == "}")
+        //{
+        //    token = new Token_Block()
+        //    {
+        //        isClosing = word == "}"
+        //    };
+        //}
+        //if (word == "return")
+        //{
+        //    token = new Token_Return();
+        //}
+        //if (int.TryParse(word, out _))
+        //{
+        //    token = new Token_Constant()
+        //    {
+        //        value = word
+        //    };
+        //}
+
+        if (int.TryParse(word, out int _))
+        {
+            return new Token_Constant()
+            {
+                value = word
+            };
+        }
+
+        if (Token_Equality.TryMatch(word, out var eq)) return eq;
+        if (Token_Comprassion.TryMatch(word, out var cmp)) return cmp;
+        if (Token_Term.TryMatch(word, out var term)) return term;
+        if (Token_Factor.TryMatch(word, out var fact)) return fact;
+
+        if (Token_BracketOpen.IsMatch(word)) return new Token_BracketOpen();
+        if (Token_BracketClose.IsMatch(word)) return new Token_BracketClose();
+        if (Token_Print.IsMatch(word)) return new Token_Print();
+
+        if (word == "var") return new Token_Type();
+
+        if (Token_Identifier.IsMatch(word))
+        {
+            return new Token_Identifier()
+            {
+                name = word
+            };
+        }
+
+        if (Token_Assign.IsMatch(word)) return new Token_Assign();
+
+
+        return null;
     }
 }

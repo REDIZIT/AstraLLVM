@@ -5,37 +5,57 @@ public static class Generator
     public class Context
     {
         public StringBuilder b = new();
-        public HashSet<string> variables = new();
+        public HashSet<string> stackVariables = new();
+        public HashSet<string> tempVariables = new();
         public int tempVariablesCount = 0;
+        public int localVariablesCount = 0;
 
-        public string NextLocalVariableName()
+        public string NextStackUnnamedVariableName()
         {
-            string varName = $"%local_{variables.Count}";
-            variables.Add(varName);
+            string varName = $"%local_{localVariablesCount}";
+            localVariablesCount++;
+            stackVariables.Add(varName);
             return varName;
         }
         public string NextTempVariableName()
         {
-            return $"%tmp_{tempVariablesCount++}";
+            string varName = $"%tmp_{tempVariablesCount}";
+            tempVariablesCount++;
+            tempVariables.Add(varName);
+            return varName;
+        }
+        public string RegisterStackVariable(string name)
+        {
+            string varName = "%" + name;
+            stackVariables.Add(varName);
+            return varName;
+        }
+
+        public bool IsPointer(string generatedName)
+        {
+            return stackVariables.Contains(generatedName);
         }
     }
 
-    public static string Generate(List<Statement> statements)
+    public static string Generate(List<Node> statements)
     {
         Context ctx = new();
 
-        foreach (Statement statement in statements)
+        foreach (Node statement in statements)
         {
-            Dictionary<int, List<Expr>> exprsByDepth = new();
-            statement.AppendToFlatTree(exprsByDepth, 0);
+            //Dictionary<int, List<Node>> exprsByDepth = new();
+            //statement.AppendToFlatTree(exprsByDepth, 0);
 
-            for (int i = exprsByDepth.Count - 1; i >= 0; i--)
-            {
-                foreach (Expr expression in exprsByDepth[i])
-                {
-                    expression.Generate(ctx);
-                }
-            }
+            //for (int di = exprsByDepth.Count - 1; di >= 0; di--)
+            //{
+            //    for (int ri = 0; ri < exprsByDepth[di].Count; ri++)
+            //    {
+            //        Node expression = exprsByDepth[di][ri];
+            //        expression.Generate(ctx);
+            //    }
+            //}
+
+            statement.Generate(ctx);
         }
 
         return FormatLLVM(ctx.b.ToString());

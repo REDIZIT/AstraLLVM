@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using System.Text.RegularExpressions;
 
 public abstract class Token
 {
@@ -86,5 +87,24 @@ public class Token_Print : Token
     public static bool IsMatch(string word)
     {
         return word == "print";
+    }
+}
+public class Token_Type : Token
+{
+}
+public class Token_Identifier : Token
+{
+    public string name;
+
+    public static bool IsMatch(string word)
+    {
+        return Regex.IsMatch(word, "[a-zA-Z0-9_]");
+    }
+}
+public class Token_Assign : Token
+{
+    public static bool IsMatch(string word)
+    {
+        return word == "=";
     }
 }
