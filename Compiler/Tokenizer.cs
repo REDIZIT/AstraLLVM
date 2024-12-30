@@ -1,5 +1,23 @@
 ﻿public static class Tokenizer
 {
+    public static Dictionary<string, Type> tokenTypeBySingleWord = new()
+    {
+        { "(", typeof(Token_BracketOpen) },
+        { ")", typeof(Token_BracketClose) },
+        { "var", typeof(Token_Type) },
+        { "=", typeof(Token_Assign) },
+        { "{", typeof(Token_BlockOpen) },
+        { "}", typeof(Token_BlockClose) },
+        { "if", typeof(Token_If) },
+        { "else", typeof(Token_Else) },
+        { "while", typeof(Token_While) },
+        { "for", typeof(Token_For) },
+        { ";", typeof(Token_Semicolon) },
+        { ",", typeof(Token_Comma) },
+        { "fn", typeof(Token_Fn) },
+        { "return", typeof(Token_Return) },
+    };
+
     public static List<Token> Tokenize(string rawCode)
     {
         List<Token> tokens = new();
@@ -22,6 +40,12 @@
                 if (token == null) throw new Exception($"Failed to tokenize word '{word}'");
 
                 tokens.Add(token);
+            }
+
+
+            if (tokens.Last() is Token_Terminator == false)
+            {
+                tokens.Add(new Token_Terminator());
             }
         }
 
@@ -47,30 +71,12 @@
         if (Token_Comprassion.TryMatch(word, out var cmp)) return cmp;
         if (Token_Term.TryMatch(word, out var term)) return term;
         if (Token_Factor.TryMatch(word, out var fact)) return fact;
-        
 
-        if (Token_BracketOpen.IsMatch(word)) return new Token_BracketOpen();
-        if (Token_BracketClose.IsMatch(word)) return new Token_BracketClose();
-        if (Token_Print.IsMatch(word)) return new Token_Print();
 
-        if (word == "var") return new Token_Type();
-
-        if (Token_Assign.IsMatch(word)) return new Token_Assign();
-
-        if (Token_BlockOpen.IsMatch(word)) return new Token_BlockOpen();
-        if (Token_BlockClose.IsMatch(word)) return new Token_BlockClose();
-
-        if (Token_If.IsMatch(word)) return new Token_If();
-        if (Token_Else.IsMatch(word)) return new Token_Else();
-
-        if (Token_While.IsMatch(word)) return new Token_While();
-        if (Token_For.IsMatch(word)) return new Token_For();
-
-        if (Token_Semicolon.IsMatch(word)) return new Token_Semicolon();
-        if (Token_Comma.IsMatch(word)) return new Token_Comma();
-        if (Token_Fn.IsMatch(word)) return new Token_Fn();
-        if (Token_Return.IsMatch(word)) return new Token_Return();
-
+        if (tokenTypeBySingleWord.TryGetValue(word, out Type tokenType))
+        {
+            return (Token)Activator.CreateInstance(tokenType);
+        }
 
         // Should be the last one
         if (Token_Identifier.IsMatch(word))

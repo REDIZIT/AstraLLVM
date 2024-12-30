@@ -20,22 +20,6 @@ public class Expr : Node
 {
 }
 
-public class Node_PrintStatement : Node
-{
-    public Node expression;
-
-    public override void AppendToFlatTree(Dictionary<int, List<Node>> exprsByDepth, int depth)
-    {
-        base.AppendToFlatTree(exprsByDepth, depth);
-
-        exprsByDepth[depth].Add(expression);
-        depth++;
-
-        expression.AppendToFlatTree(exprsByDepth, depth);
-    }
-}
-
-
 public class Expr_Grouping : Expr
 {
     public Node expression;

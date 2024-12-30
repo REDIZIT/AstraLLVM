@@ -14,6 +14,7 @@
         while (IsAtEnd() == false)
         {
             statements.Add(Declaration());
+            SkipTerminators();
         }
         
 
@@ -48,7 +49,7 @@
 
         Consume<Token_BracketClose>("Expected ')' after parameters");
 
-        Consume<Token_BlockOpen>("Expected '}' before function body");
+        Consume<Token_BlockOpen>("Expected '}' before function body", skipTerminators: true);
         Node body = Block();
         return new Node_Function()
         {
@@ -75,7 +76,6 @@
     }
     private static Node Statement()
     {
-        if (Match(typeof(Token_Print))) return PrintStatement();
         if (Match(typeof(Token_BlockOpen))) return Block();
         if (Match(typeof(Token_If))) return If();
         if (Match(typeof(Token_While))) return While();
@@ -86,14 +86,14 @@
     }
     private static Node Return()
     {
-        if (Match(typeof(Token_Semicolon)))
+        if (Match(typeof(Token_Terminator)))
         {
             return new Node_Return();
         }
         else
         {
             Node expr = Expression();
-            Consume<Token_Semicolon>("Expected ';' after return");
+            Consume<Token_Terminator>("Expected terminator after return");
             return new Node_Return()
             {
                 expr = expr
@@ -176,7 +176,7 @@
             nodes.Add(Declaration());
         }
 
-        Consume(typeof(Token_BlockClose), "Expect '}' after block.");
+        Consume(typeof(Token_BlockClose), "Expect '}' after block.", skipTerminators: true);
         return new Node_Block()
         {
             children = nodes
@@ -361,24 +361,24 @@
             };
         }
 
+
+        if (Check(typeof(Token_Terminator)))
+        {
+            SkipTerminators();
+
+            if (IsAtEnd()) return null;
+            return Declaration();
+        }
+
         throw new Exception($"Totally unexpected token '{Peek()}'");
     }
-    private static Node_PrintStatement PrintStatement()
-    {
-        Node value = Expression();
-        return new Node_PrintStatement()
-        {
-            expression = value
-        };
-    }
-
 
 
     private static bool Match(params Type[] tokenTypes)
     {
         foreach (Type type in tokenTypes)
         {
-            if (Check(type))
+            if (Check(type, false))
             {
                 Advance();
                 return true;
@@ -386,9 +386,25 @@
         }
         return false;
     }
-    private static bool Check(Type tokenType)
+    private static bool Check(Type tokenType, bool skipTerminators = false)
     {
         if (IsAtEnd()) return false;
+
+        if (tokenType != typeof(Token_Terminator))
+        {
+            if (skipTerminators)
+            {
+                SkipTerminators();
+            }
+        }
+        else
+        {
+            if (Previous().GetType() == typeof(Token_Terminator))
+            {
+                return true;
+            }
+        }
+        
         return Peek().GetType() == tokenType;
     }
     private static Token Advance()
@@ -408,13 +424,24 @@
     {
         return tokens[current - 1];
     }
-    private static T Consume<T>(string errorMessage) where T : Token
+    private static T Consume<T>(string errorMessage, bool skipTerminators = false) where T : Token
     {
-        return (T)Consume(typeof(T), errorMessage);
+        return (T)Consume(typeof(T), errorMessage, skipTerminators);
     }
-    private static Token Consume(Type awaitingTokenType, string errorMessage)
+    private static Token Consume(Type awaitingTokenType, string errorMessage, bool skipTerminators = false)
     {
-        if (Check(awaitingTokenType)) return Advance();
+        if (Check(awaitingTokenType, skipTerminators)) return Advance();
         throw new Exception(errorMessage);
+    }
+
+    private static void SkipTerminators()
+    {
+        if (IsAtEnd()) return;
+
+        while (Peek().GetType() == typeof(Token_Terminator))
+        {
+            Advance();
+            if (IsAtEnd()) break;
+        }
     }
 }

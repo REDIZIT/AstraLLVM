@@ -5,48 +5,6 @@ public abstract class Token
 {
     public virtual void Generate(StringBuilder b) { }
 }
-public class Token_FunctionDefine : Token
-{
-    public string name;
-
-    public override string ToString()
-    {
-        return base.ToString() + ": " + name;
-    }
-
-    public override void Generate(StringBuilder b)
-    {
-        b.AppendLine($"define i32 @{name}()");
-    }
-}
-public class Token_FunctionCall : Token
-{
-    public string name;
-
-    public override string ToString()
-    {
-        return base.ToString() + ": " + name;
-    }
-
-    public override void Generate(StringBuilder b)
-    {
-        b.AppendLine($"call i32 @{name}()");
-    }
-}
-public class Token_Block : Token
-{
-    public bool isClosing;
-
-    public override string ToString()
-    {
-        return base.ToString() + ": " + (isClosing ? "end" : "begin");
-    }
-
-    public override void Generate(StringBuilder b)
-    {
-        b.AppendLine(isClosing ? "}" : "{");
-    }
-}
 public class Token_Constant : Token
 {
     public string value;
@@ -63,24 +21,9 @@ public class Token_Constant : Token
 }
 public class Token_BracketOpen : Token
 {
-    public static bool IsMatch(string word)
-    {
-        return word == "(";
-    }
 }
 public class Token_BracketClose : Token
 {
-    public static bool IsMatch(string word)
-    {
-        return word == ")";
-    }
-}
-public class Token_Print : Token
-{
-    public static bool IsMatch(string word)
-    {
-        return word == "print";
-    }
 }
 public class Token_Type : Token
 {
@@ -96,78 +39,37 @@ public class Token_Identifier : Token
 }
 public class Token_Assign : Token
 {
-    public static bool IsMatch(string word)
-    {
-        return word == "=";
-    }
 }
 public class Token_BlockOpen : Token
 {
-    public static bool IsMatch(string word)
-    {
-        return word == "{";
-    }
 }
 public class Token_BlockClose : Token
 {
-    public static bool IsMatch(string word)
-    {
-        return word == "}";
-    }
 }
 public class Token_If : Token
 {
-    public static bool IsMatch(string word)
-    {
-        return word == "if";
-    }
 }
 public class Token_Else : Token
 {
-    public static bool IsMatch(string word)
-    {
-        return word == "else";
-    }
 }
 public class Token_While : Token
 {
-    public static bool IsMatch(string word)
-    {
-        return word == "while";
-    }
 }
 public class Token_For : Token
 {
-    public static bool IsMatch(string word)
-    {
-        return word == "for";
-    }
 }
-public class Token_Semicolon : Token
+public class Token_Semicolon : Token_Terminator
 {
-    public static bool IsMatch(string word)
-    {
-        return word == ";";
-    }
 }
 public class Token_Comma : Token
 {
-    public static bool IsMatch(string word)
-    {
-        return word == ",";
-    }
 }
 public class Token_Fn : Token
 {
-    public static bool IsMatch(string word)
-    {
-        return word == "fn";
-    }
 }
 public class Token_Return : Token
 {
-    public static bool IsMatch(string word)
-    {
-        return word == "return";
-    }
+}
+public class Token_Terminator : Token
+{
 }
