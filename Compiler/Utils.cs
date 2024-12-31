@@ -5,12 +5,12 @@
         bool isPtr_source = ctx.IsPointer(sourceVarName);
         bool isPtr_dest = ctx.IsPointer(destVarName);
 
-        string type_source = ctx.GetVariableType(sourceVarName);
-        string type_dest = ctx.GetVariableType(destVarName);
+        TypeInfo type_source = ctx.GetVariableType(sourceVarName);
+        TypeInfo type_dest = ctx.GetVariableType(destVarName);
 
         if (type_source != type_dest)
         {
-            throw new Exception($"Can not move values with different types. Source '{type_source}', dest '{destVarName}'");
+            throw new Exception($"Can not move values with different types. Source '{type_source}', dest '{type_dest}'");
         }
 
 
@@ -20,7 +20,7 @@
         }
         else if (isPtr_source && isPtr_dest)
         {
-            string tempName = ctx.NextTempVariableName("{type_source}");
+            string tempName = ctx.NextTempVariableName(type_source);
             ctx.b.AppendLine($"{tempName} = load {type_source}, i32* {sourceVarName}");
             ctx.b.AppendLine($"store {type_source} {tempName}, i32* {destVarName}");
         }
@@ -33,7 +33,7 @@
     {
         if (ctx.IsPointer(varName) == false) return varName;
 
-        string type = ctx.GetVariableType(varName);
+        TypeInfo type = ctx.GetVariableType(varName);
         string tempName = ctx.NextTempVariableName(type);
         ctx.b.AppendLine($"{tempName} = load {type}, {type}* {varName}");
         return tempName;

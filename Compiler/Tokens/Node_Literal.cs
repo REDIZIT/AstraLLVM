@@ -12,9 +12,11 @@
     {
         base.Generate(ctx);
 
-        generatedVariableName = ctx.NextStackUnnamedVariableName("i32");
-        ctx.b.AppendLine($"{generatedVariableName} = alloca i32");
-        ctx.b.AppendLine($"store i32 {constant.value}, i32* {generatedVariableName}");
+        PrimitiveTypeInfo literalType = PrimitiveTypeInfo.INT;
+
+        generatedVariableName = ctx.NextStackUnnamedVariableName(literalType);
+        ctx.b.AppendLine($"{generatedVariableName} = alloca {literalType.asmName}");
+        ctx.b.AppendLine($"store {literalType.asmName} {constant.value}, {PrimitiveTypeInfo.PTR} {generatedVariableName}");
         ctx.b.AppendLine();
     }
 }

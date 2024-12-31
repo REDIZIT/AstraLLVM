@@ -1,4 +1,4 @@
-﻿public static class AbstractSyntaxTreeBuilder
+﻿public static partial class AbstractSyntaxTreeBuilder
 {
     private static List<Token> tokens;
     private static int current;
@@ -21,6 +21,10 @@
         return statements;
     }
 
+
+
+    #region Layers
+
     private static Node Declaration()
     {
         if (Match(typeof(Token_Class))) return ClassDeclaration();
@@ -34,9 +38,150 @@
 
         return Statement();
     }
+    private static Node Statement()
+    {
+        if (Match(typeof(Token_BlockOpen))) return Block();
+        if (Match(typeof(Token_If))) return If();
+        if (Match(typeof(Token_While))) return While();
+        if (Match(typeof(Token_For))) return For();
+        if (Match(typeof(Token_Return))) return Return();
+
+        return Expression();
+    }
+    private static Node Expression()
+    {
+        return Assignment();
+    }
+    private static Node Assignment()
+    {
+        Node expr = Equality();
+
+        if (Match(typeof(Token_Assign)))
+        {
+            Node value = Assignment();
+
+            if (expr is Node_VariableUse variableUse)
+            {
+                return new Node_VariableAssign()
+                {
+                    variableName = variableUse.variableName,
+                    value = value
+                };
+            }
+            else
+            {
+                throw new Exception("Expected variable name to assign, but no such token after '='");
+            }
+        }
+
+        return expr;
+    }
+    private static Node Equality()
+    {
+        Node left = Comprassion();
+
+        while (Match(typeof(Token_Equality)))
+        {
+            left = new Node_Binary()
+            {
+                left = left,
+                @operator = Previous<Token_Operator>(),
+                right = Comprassion()
+            };
+        }
+
+        return left;
+    }
+    private static Node Comprassion()
+    {
+        Node left = AddSub();
+
+        while (Match(typeof(Token_Comprassion)))
+        {
+            left = new Node_Binary()
+            {
+                left = left,
+                @operator = Previous<Token_Operator>(),
+                right = AddSub()
+            };
+        }
+
+        return left;
+    }
+    private static Node AddSub()
+    {
+        Node left = MulDiv();
+
+        while (Match(typeof(Token_Term)))
+        {
+            left = new Node_Binary()
+            {
+                left = left,
+                @operator = Previous<Token_Operator>(),
+                right = MulDiv()
+            };
+        }
+
+        return left;
+    }
+    private static Node MulDiv()
+    {
+        Node left = NotNeg();
+
+        while (Match(typeof(Token_Factor)))
+        {
+            Node right = NotNeg();
+            left = new Node_Binary()
+            {
+                left = left,
+                @operator = Previous<Token_Operator>(),
+                right = right
+            };
+        }
+
+        return left;
+    }
+    private static Node NotNeg()
+    {
+        while (Match(typeof(Token_Unary)))
+        {
+            return new Node_Unary()
+            {
+                @operator = Previous<Token_Operator>(),
+                right = NotNeg()
+            };
+        }
+
+        return Call();
+    }
+    private static Node Call()
+    {
+        if (Match(typeof(Token_New))) return New();
+
+        Node expr = Primary();
+
+        while (true)
+        {
+            Token_Identifier token = Previous() as Token_Identifier;
+            if (Match(typeof(Token_BracketOpen)))
+            {
+                expr = FinishCall(expr, token);
+            }
+            else
+            {
+                break;
+            }
+        }
+
+        return expr;
+    }
+
+    #endregion
+
+
     private static Node ClassDeclaration()
     {
-        Token_Identifier ident = Consume<Token_Identifier>();
+        Token_Type ident = Consume<Token_Type>();
         Consume<Token_BlockOpen>("Expected '{' after class declaration", skipTerminators: true);
 
         var body = FunctionsAndFieldsDeclaration();
@@ -45,7 +190,7 @@
 
         return new Node_Class()
         {
-            name = ident.name,
+            name = ident.type,
             body = body
         };
     }
@@ -99,7 +244,7 @@
 
             VariableRawData data = new()
             {
-                type = type.type
+                rawType = type.type
             };
 
             if (Check(typeof(Token_Identifier)))
@@ -130,33 +275,23 @@
         {
             variable = new VariableRawData()
             {
-                type = type.type,
+                rawType = type.type,
                 name = varNameToken.name
             },
             initValue = initValue
         };
     }
-    private static Node Statement()
-    {
-        if (Match(typeof(Token_BlockOpen))) return Block();
-        if (Match(typeof(Token_If))) return If();
-        if (Match(typeof(Token_While))) return While();
-        if (Match(typeof(Token_For))) return For();
-        if (Match(typeof(Token_Return))) return Return();
-        if (Match(typeof(Token_New))) return New();
-
-        return Expression();
-    }
+    
     private static Node New()
     {
-        Token_Type ident = Consume<Token_Type>();
+        Token_Identifier ident = Consume<Token_Identifier>();
 
-        Consume<Token_BlockOpen>();
-        Consume<Token_BlockClose>();
+        Consume<Token_BracketOpen>();
+        Consume<Token_BracketClose>();
 
         return new Node_New()
         {
-            className = ident.type,
+            className = ident.name,
         };
     }
     private static Node Return()
@@ -257,137 +392,8 @@
             children = nodes
         };
     }
-    private static Node Expression()
-    {
-        return Assignment();
-    }
-    private static Node Assignment()
-    {
-        Node expr = Equality();
-
-        if (Match(typeof(Token_Assign)))
-        {
-            Token_Assign token = (Token_Assign)Previous();
-            Node value = Assignment();
-
-            if (expr is Node_VariableUse variableUse)
-            {
-                return new Node_VariableAssign()
-                {
-                    variableName = variableUse.variableName,
-                    value = value
-                };
-            }
-        }
-
-        return expr;
-    }
-    private static Node Equality()
-    {
-        Node expr = Comprassion();
-
-        while (Match(typeof(Token_Equality)))
-        {
-            Token @operator = Previous();
-            Node right = Comprassion();
-            expr = new Node_Binary()
-            {
-                left = expr,
-                @operator = (Token_Operator)@operator,
-                right = right
-            };
-        }
-
-        return expr;
-    }
-    private static Node Comprassion()
-    {
-        Node expr = Term();
-
-        while (Match(typeof(Token_Comprassion)))
-        {
-            Token @operator = Previous();
-            Node right = Term();
-            expr = new Node_Binary()
-            {
-                left = expr,
-                @operator = (Token_Operator)@operator,
-                right = right
-            };
-        }
-
-        return expr;
-    }
-    private static Node Term()
-    {
-        Node expr = Factor();
-
-        while (Match(typeof(Token_Term)))
-        {
-            Token @operator = Previous();
-            Node right = Factor();
-            expr = new Node_Binary()
-            {
-                left = expr,
-                @operator = (Token_Operator)@operator,
-                right = right
-            };
-        }
-
-        return expr;
-    }
-    private static Node Factor()
-    {
-        Node expr = Unary();
-
-        while (Match(typeof(Token_Factor)))
-        {
-            Token @operator = Previous();
-            Node right = Unary();
-            expr = new Node_Binary()
-            {
-                left = expr,
-                @operator = (Token_Operator)@operator,
-                right = right
-            };
-        }
-
-        return expr;
-    }
-    private static Node Unary()
-    {
-        while (Match(typeof(Token_Unary)))
-        {
-            Token @operator = Previous();
-            Node right = Unary();
-            return new Node_Unary()
-            {
-                @operator = (Token_Operator)@operator,
-                right = right
-            };
-        }
-
-        return Call();
-    }
-    private static Node Call()
-    {
-        Node expr = Primary();
-
-        while (true)
-        {
-            Token_Identifier token = Previous() as Token_Identifier;
-            if (Match(typeof(Token_BracketOpen)))
-            {
-                expr = FinishCall(expr, token);
-            }
-            else
-            {
-                break;
-            }
-        }
-
-        return expr;
-    }
+    
+    
     private static Node FinishCall(Node caller, Token_Identifier ident)
     {
         List<Node> arguments = new();
@@ -486,6 +492,10 @@
     private static Token Peek()
     {
         return tokens[current];
+    }
+    private static T Previous<T>() where T : Token
+    {
+        return (T)Previous();
     }
     private static Token Previous()
     {

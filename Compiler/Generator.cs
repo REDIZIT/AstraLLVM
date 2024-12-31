@@ -10,9 +10,11 @@ public static class Generator
         public int tempVariablesCount = 0;
         public int localVariablesCount = 0;
 
-        public Dictionary<string, string> typeByVariableName = new();
+        public Dictionary<string, TypeInfo> typeByVariableName = new();
 
-        public string NextStackUnnamedVariableName(string type)
+        public Module module;
+
+        public string NextStackUnnamedVariableName(TypeInfo type)
         {
             string varName = $"%local_{localVariablesCount}";
             localVariablesCount++;
@@ -20,7 +22,7 @@ public static class Generator
             typeByVariableName.Add(varName, type);
             return varName;
         }
-        public string NextTempVariableName(string type)
+        public string NextTempVariableName(TypeInfo type)
         {
             string varName = $"%tmp_{tempVariablesCount}";
             tempVariablesCount++;
@@ -28,7 +30,7 @@ public static class Generator
             typeByVariableName.Add(varName, type);
             return varName;
         }
-        public string RegisterStackVariable(string name, string type)
+        public string RegisterStackVariable(string name, TypeInfo type)
         {
             string varName = "%" + name;
             stackVariables.Add(varName);
@@ -41,7 +43,7 @@ public static class Generator
             return stackVariables.Contains(generatedName);
         }
 
-        public string GetVariableType(string variableName)
+        public TypeInfo GetVariableType(string variableName)
         {
             return typeByVariableName[variableName];
         }
@@ -49,12 +51,15 @@ public static class Generator
 
     public static string Generate(List<Node> statements, Module module)
     {
-        Context ctx = new();
+        Context ctx = new()
+        {
+            module = module
+        };
 
         ctx.b.AppendLine($";");
         ctx.b.AppendLine($"; Structs");
         ctx.b.AppendLine($";");
-        foreach (ClassInfo info in module.classInfoByName.Values)
+        foreach (ClassTypeInfo info in module.classInfoByName.Values)
         {
             ctx.b.AppendLine($"%{info.name} = type {{ i32 }}");
         }

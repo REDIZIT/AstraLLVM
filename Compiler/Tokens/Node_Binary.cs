@@ -23,7 +23,7 @@
         string leftName = Utils.SureNotPointer(left.generatedVariableName, ctx);
         string rightName = Utils.SureNotPointer(right.generatedVariableName, ctx);
 
-        string resultType = @operator.ResultType;
+        TypeInfo resultType = ctx.module.GetType(@operator.ResultType);
 
         generatedVariableName = ctx.NextTempVariableName(resultType);
         ctx.b.AppendLine($"{generatedVariableName} = {@operator.asmOperatorName} i32 {leftName}, {rightName}");
@@ -53,11 +53,13 @@ public class Node_Unary : Node
 
         string rightName = Utils.SureNotPointer(right.generatedVariableName, ctx);
 
+        TypeInfo boolType = PrimitiveTypeInfo.BOOL;
+
         // Logical not
         if (@operator.asmOperatorName == "not")
         {
-            string rightType = ctx.GetVariableType(rightName);
-            string tempName = ctx.NextTempVariableName("i1");
+            TypeInfo rightType = ctx.module.GetType(rightName);
+            string tempName = ctx.NextTempVariableName(boolType);
             ctx.b.AppendLine($"{tempName} = icmp sle {rightType} {rightName}, 0");
 
             generatedVariableName = tempName;
@@ -65,8 +67,8 @@ public class Node_Unary : Node
 
         if (@operator.asmOperatorName == "-")
         {
-            string rightType = ctx.GetVariableType(rightName);
-            string tempName = ctx.NextTempVariableName("i1");
+            TypeInfo rightType = ctx.module.GetType(rightName);
+            string tempName = ctx.NextTempVariableName(boolType);
             ctx.b.AppendLine($"{tempName} = sub {rightType} 0, {rightName}");
 
             generatedVariableName = tempName;

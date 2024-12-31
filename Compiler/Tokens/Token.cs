@@ -42,6 +42,10 @@ public class Token_Type : Token
             if (bits <= 0) throw new Exception("Int type can not has zero or less bits");
             return true;
         }
+        if (word == "program")
+        {
+            return true;
+        }
         return false;
     }
 }

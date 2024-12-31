@@ -34,12 +34,27 @@
     {
         for (int i = 1; i <= 64; i++)
         {
-            TypeInfo type = new()
+            PrimitiveTypeInfo type = new()
             {
+                name = "i" + i,
                 asmName = "i" + i,
-                astraName = "i" + i
             };
-            module.typeInfoByName[type.astraName] = type;
+            module.typeInfoByName[type.name] = type;
         }
+
+        PrimitiveTypeInfo.BOOL = (PrimitiveTypeInfo)module.GetType("i1");
+        PrimitiveTypeInfo.BYTE = (PrimitiveTypeInfo)module.GetType("i8");
+        PrimitiveTypeInfo.SHORT = (PrimitiveTypeInfo)module.GetType("i16");
+        PrimitiveTypeInfo.INT = (PrimitiveTypeInfo)module.GetType("i32");
+        PrimitiveTypeInfo.LONG = (PrimitiveTypeInfo)module.GetType("i64");
+
+
+        PrimitiveTypeInfo ptrType = new()
+        {
+            name = "ptr",
+            asmName = "ptr",
+        };
+        module.typeInfoByName[ptrType.name] = ptrType;
+        PrimitiveTypeInfo.PTR = ptrType;
     }
 }

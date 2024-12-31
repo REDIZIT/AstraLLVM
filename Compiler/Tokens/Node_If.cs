@@ -22,9 +22,9 @@
 
         string valueConditionVariable = Utils.SureNotPointer(condition.generatedVariableName, ctx);
 
-        if (ctx.GetVariableType(valueConditionVariable) != "i1")
+        if (ctx.GetVariableType(valueConditionVariable) != PrimitiveTypeInfo.BOOL)
         {
-            string castedConditionVariable = ctx.NextTempVariableName("i1");
+            string castedConditionVariable = ctx.NextTempVariableName(PrimitiveTypeInfo.BOOL);
             ctx.b.AppendLine($"{castedConditionVariable} = trunc {ctx.GetVariableType(valueConditionVariable)} {valueConditionVariable} to i1");
             valueConditionVariable = castedConditionVariable;
         }

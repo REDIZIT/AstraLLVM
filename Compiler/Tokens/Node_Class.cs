@@ -5,10 +5,13 @@
 
     public override void RegisterRefs(Module module)
     {
-        module.classInfoByName.Add(name, new ClassInfo()
+        ClassTypeInfo typeInfo = new ClassTypeInfo()
         {
             name = name
-        });
+        };
+
+        module.typeInfoByName.Add(name, typeInfo);
+        module.classInfoByName.Add(name, typeInfo);
 
         body.RegisterRefs(module);
     }
@@ -27,7 +30,7 @@ public class Node_New : Node
 {
     public string className;
 
-    public ClassInfo classInfo;
+    public ClassTypeInfo classInfo;
 
     public override void RegisterRefs(Module module)
     {
@@ -41,6 +44,9 @@ public class Node_New : Node
     {
         base.Generate(ctx);
 
-        ctx.b.AppendLine("; alloca class ");
+        string tempName = ctx.NextStackUnnamedVariableName(classInfo);
+        ctx.b.AppendLine($"{tempName} = alloca %{classInfo.name}");
+        ctx.b.AppendLine();
+        generatedVariableName = tempName;
     }
 }
