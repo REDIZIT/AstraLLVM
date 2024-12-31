@@ -3,6 +3,16 @@
     public Node left, right;
     public Token_Operator @operator;
 
+    public override void RegisterRefs(Module module)
+    {
+        left.RegisterRefs(module);
+        right.RegisterRefs(module);
+    }
+    public override void ResolveRefs(Module module)
+    {
+        left.ResolveRefs(module);
+        right.ResolveRefs(module);
+    }
     public override void Generate(Generator.Context ctx)
     {
         base.Generate(ctx);
@@ -27,6 +37,14 @@ public class Node_Unary : Node
     public Node right;
     public Token_Operator @operator;
 
+    public override void RegisterRefs(Module module)
+    {
+        right.RegisterRefs(module);
+    }
+    public override void ResolveRefs(Module module)
+    {
+        right.ResolveRefs(module);
+    }
     public override void Generate(Generator.Context ctx)
     {
         base.Generate(ctx);

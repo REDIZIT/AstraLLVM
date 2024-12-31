@@ -24,7 +24,7 @@
     private static Node Declaration()
     {
         if (Match(typeof(Token_Type))) return VariableDeclaration();
-        if (Match(typeof(Token_Fn))) return FunctionDeclaration();
+        if (Match(typeof(Token_Visibility))) return FunctionDeclaration();
 
         return Statement();
     }
@@ -49,17 +49,54 @@
 
         Consume<Token_BracketClose>("Expected ')' after parameters");
 
+        // Has return type
+        List<VariableRawData> returnValues = new();
+        if (Match(typeof(Token_Colon)))
+        {
+            do
+            {
+                VariableRawData variable = ReturnValueDeclaration();
+                returnValues.Add(variable);
+            } while (Match(typeof(Token_Comma)));
+        }
+
         Consume<Token_BlockOpen>("Expected '}' before function body", skipTerminators: true);
         Node body = Block();
         return new Node_Function()
         {
             name = functionName.name,
             body = body,
+            returnValues = returnValues
         };
 
     }
+    private static VariableRawData ReturnValueDeclaration()
+    {
+        if (Match(typeof(Token_Type)))
+        {
+            Token_Type type = (Token_Type)Previous();
+
+            VariableRawData data = new()
+            {
+                type = type.type
+            };
+
+            if (Check(typeof(Token_Identifier)))
+            {
+                Token_Identifier name = Consume<Token_Identifier>("Expected argument name");
+                data.name = name.name;
+            }
+
+            return data;
+        }
+        else
+        {
+            throw new Exception("Expected type inside argument declaration");
+        }
+    }
     private static Node VariableDeclaration()
     {
+        Token_Type type = (Token_Type)Previous();
         Token_Identifier varNameToken = (Token_Identifier)Consume(typeof(Token_Identifier), "Expect variable name.");
 
         Node initValue = null;
@@ -70,7 +107,11 @@
 
         return new Node_VariableDeclaration()
         {
-            variableName = varNameToken.name,
+            variable = new VariableRawData()
+            {
+                type = type.type,
+                name = varNameToken.name
+            },
             initValue = initValue
         };
     }
@@ -300,9 +341,10 @@
 
         while (true)
         {
+            Token_Identifier token = Previous() as Token_Identifier;
             if (Match(typeof(Token_BracketOpen)))
             {
-                expr = FinishCall(expr);
+                expr = FinishCall(expr, token);
             }
             else
             {
@@ -312,7 +354,7 @@
 
         return expr;
     }
-    private static Node FinishCall(Node caller)
+    private static Node FinishCall(Node caller, Token_Identifier ident)
     {
         List<Node> arguments = new();
 
@@ -326,8 +368,9 @@
         }
 
         Consume(typeof(Token_BracketClose), "Expected ')' after arguments for function call");
-        return new Node_Call()
+        return new Node_FunctionCall()
         {
+            functionName = ident == null ? "<anon>" : ident.name,
             caller = caller,
             arguments = arguments,
         };

@@ -4,10 +4,42 @@
     {
         List<Token> tokens = Tokenizer.Tokenize(astraCode);
 
-        var root = AbstractSyntaxTreeBuilder.Parse(tokens);
+        List<Node> ast = AbstractSyntaxTreeBuilder.Parse(tokens);
 
-        string llvm = Generator.Generate(root);
+        Module module = DiscoverModule(ast);
+
+        string llvm = Generator.Generate(ast);
 
         return llvm;
+    }
+
+    private static Module DiscoverModule(List<Node> ast)
+    {
+        Module module = new();
+
+        RegisterLLVMTypes(module);
+        foreach (Node node in ast)
+        {
+            node.RegisterRefs(module);
+        }
+
+        foreach (Node node in ast)
+        {
+            node.ResolveRefs(module);
+        }
+
+        return module;
+    }
+    private static void RegisterLLVMTypes(Module module)
+    {
+        for (int i = 1; i <= 64; i++)
+        {
+            TypeInfo type = new()
+            {
+                asmName = "i" + i,
+                astraName = "i" + i
+            };
+            module.typeInfoByName[type.astraName] = type;
+        }
     }
 }

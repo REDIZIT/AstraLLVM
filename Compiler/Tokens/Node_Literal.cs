@@ -2,13 +2,12 @@
 {
     public Token_Constant constant;
 
-    public override void AppendToFlatTree(Dictionary<int, List<Node>> exprsByDepth, int depth)
+    public override void RegisterRefs(Module module)
     {
-        base.AppendToFlatTree(exprsByDepth, depth);
-
-        exprsByDepth[depth].Add(this);
     }
-
+    public override void ResolveRefs(Module module)
+    {
+    }
     public override void Generate(Generator.Context ctx)
     {
         base.Generate(ctx);

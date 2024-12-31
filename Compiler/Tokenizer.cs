@@ -4,7 +4,6 @@
     {
         { "(", typeof(Token_BracketOpen) },
         { ")", typeof(Token_BracketClose) },
-        { "var", typeof(Token_Type) },
         { "=", typeof(Token_Assign) },
         { "{", typeof(Token_BlockOpen) },
         { "}", typeof(Token_BlockClose) },
@@ -13,6 +12,7 @@
         { "while", typeof(Token_While) },
         { "for", typeof(Token_For) },
         { ";", typeof(Token_Terminator) },
+        { ":", typeof(Token_Colon) },
         { ",", typeof(Token_Comma) },
         { "fn", typeof(Token_Fn) },
         { "return", typeof(Token_Return) },
@@ -31,16 +31,19 @@
             char currentChar = rawCode[ci++];
 
             // Skip spaces and tabs
-            if (currentChar == '\t' || currentChar == ' ')
+            if (currentChar == '\t')
             {
                 continue;
             }
 
 
             // Start tokenize constant value (int, float, double)
-            if (char.IsDigit(currentChar))
+            if (char.IsDigit(currentChar) && word == "")
             {
                 isCollecting_Constant = true;
+            }
+            if (char.IsDigit(currentChar) && isCollecting_Constant)
+            {                
                 word += currentChar;
                 continue;
             }
@@ -62,12 +65,20 @@
 
 
             // On line end reach
-            if (currentChar == '\r' || currentChar == '\n')
+            if (currentChar == '\r' || currentChar == '\n' || currentChar == ' ')
             {
                 // If line reached, but word has not be recognized
                 if (word != "")
                 {
-                    if (Token_Identifier.IsMatch(word))
+                    if (Token_Visibility.TryMatch(word, out var vis))
+                    {
+                        tokens.Add(vis);
+                    }
+                    else if (Token_Type.TryMatch(word, out var type))
+                    {
+                        tokens.Add(type);
+                    }
+                    else if (Token_Identifier.IsMatch(word))
                     {
                         tokens.Add(new Token_Identifier()
                         {
@@ -80,7 +91,11 @@
                     }
                 }
 
-                TerminateLine(tokens);
+                if (currentChar != ' ')
+                {
+                    TerminateLine(tokens);
+                }
+                
                 word = "";
                 continue;
             }            
@@ -125,7 +140,6 @@
         if (Token_Comprassion.TryMatch(word, out var cmp)) return cmp;
         if (Token_Term.TryMatch(word, out var term)) return term;
         if (Token_Factor.TryMatch(word, out var fact)) return fact;
-
 
         if (tokenTypeBySingleWord.TryGetValue(word, out Type tokenType))
         {

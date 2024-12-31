@@ -2,6 +2,18 @@
 {
     public Node condition, thenBranch, elseBranch;
 
+    public override void RegisterRefs(Module module)
+    {
+        condition.RegisterRefs(module);
+        thenBranch.RegisterRefs(module);
+        elseBranch?.RegisterRefs(module);
+    }
+    public override void ResolveRefs(Module module)
+    {
+        condition.ResolveRefs(module);
+        thenBranch.ResolveRefs(module);
+        elseBranch?.ResolveRefs(module);
+    }
     public override void Generate(Generator.Context ctx)
     {
         base.Generate(ctx);
