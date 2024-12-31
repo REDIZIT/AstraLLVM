@@ -12,11 +12,12 @@ public static class Generator
 
         public Dictionary<string, string> typeByVariableName = new();
 
-        public string NextStackUnnamedVariableName()
+        public string NextStackUnnamedVariableName(string type)
         {
             string varName = $"%local_{localVariablesCount}";
             localVariablesCount++;
             stackVariables.Add(varName);
+            typeByVariableName.Add(varName, type);
             return varName;
         }
         public string NextTempVariableName(string type)
@@ -46,9 +47,23 @@ public static class Generator
         }
     }
 
-    public static string Generate(List<Node> statements)
+    public static string Generate(List<Node> statements, Module module)
     {
         Context ctx = new();
+
+        ctx.b.AppendLine($";");
+        ctx.b.AppendLine($"; Structs");
+        ctx.b.AppendLine($";");
+        foreach (ClassInfo info in module.classInfoByName.Values)
+        {
+            ctx.b.AppendLine($"%{info.name} = type {{ i32 }}");
+        }
+
+        ctx.b.AppendLine();
+        ctx.b.AppendLine();
+        ctx.b.AppendLine(";");
+        ctx.b.AppendLine("; Methods");
+        ctx.b.AppendLine(";");
 
         foreach (Node statement in statements)
         {

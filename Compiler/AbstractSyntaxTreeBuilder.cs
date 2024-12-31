@@ -23,10 +23,31 @@
 
     private static Node Declaration()
     {
+        if (Match(typeof(Token_Class))) return ClassDeclaration();
+
+        return FunctionsAndFieldsDeclaration();
+    }
+    public static Node FunctionsAndFieldsDeclaration()
+    {
         if (Match(typeof(Token_Type))) return VariableDeclaration();
         if (Match(typeof(Token_Visibility))) return FunctionDeclaration();
 
         return Statement();
+    }
+    private static Node ClassDeclaration()
+    {
+        Token_Identifier ident = Consume<Token_Identifier>();
+        Consume<Token_BlockOpen>("Expected '{' after class declaration", skipTerminators: true);
+
+        var body = FunctionsAndFieldsDeclaration();
+
+        Consume<Token_BlockClose>("Expected '}' after class body", skipTerminators: true);
+
+        return new Node_Class()
+        {
+            name = ident.name,
+            body = body
+        };
     }
     private static Node FunctionDeclaration()
     {
@@ -60,7 +81,7 @@
             } while (Match(typeof(Token_Comma)));
         }
 
-        Consume<Token_BlockOpen>("Expected '}' before function body", skipTerminators: true);
+        Consume<Token_BlockOpen>("Expected '{' before function body", skipTerminators: true);
         Node body = Block();
         return new Node_Function()
         {
@@ -122,8 +143,21 @@
         if (Match(typeof(Token_While))) return While();
         if (Match(typeof(Token_For))) return For();
         if (Match(typeof(Token_Return))) return Return();
+        if (Match(typeof(Token_New))) return New();
 
         return Expression();
+    }
+    private static Node New()
+    {
+        Token_Type ident = Consume<Token_Type>();
+
+        Consume<Token_BlockOpen>();
+        Consume<Token_BlockClose>();
+
+        return new Node_New()
+        {
+            className = ident.type,
+        };
     }
     private static Node Return()
     {
@@ -134,7 +168,7 @@
         else
         {
             Node expr = Expression();
-            Consume<Token_Terminator>("Expected terminator after return");
+            //Consume<Token_Terminator>("Expected terminator after return", skipTerminators: false);
             return new Node_Return()
             {
                 expr = expr
@@ -407,25 +441,22 @@
 
         if (Check(typeof(Token_Terminator)))
         {
-            SkipTerminators();
+            bool anyTerminatorSkipped = SkipTerminators();
 
             if (IsAtEnd()) return null;
-            return Declaration();
+            else if (anyTerminatorSkipped) return Declaration();
         }
 
         throw new Exception($"Totally unexpected token '{Peek()}'");
     }
 
 
-    private static bool Match(params Type[] tokenTypes)
+    private static bool Match(Type tokenType)
     {
-        foreach (Type type in tokenTypes)
+        if (Check(tokenType, true))
         {
-            if (Check(type, false))
-            {
-                Advance();
-                return true;
-            }
+            Advance();
+            return true;
         }
         return false;
     }
@@ -438,13 +469,6 @@
             if (skipTerminators)
             {
                 SkipTerminators();
-            }
-        }
-        else
-        {
-            if (Previous().GetType() == typeof(Token_Terminator))
-            {
-                return true;
             }
         }
         
@@ -467,7 +491,7 @@
     {
         return tokens[current - 1];
     }
-    private static T Consume<T>(string errorMessage, bool skipTerminators = false) where T : Token
+    private static T Consume<T>(string errorMessage = "Not mentioned error", bool skipTerminators = false) where T : Token
     {
         return (T)Consume(typeof(T), errorMessage, skipTerminators);
     }
@@ -477,14 +501,16 @@
         throw new Exception(errorMessage);
     }
 
-    private static void SkipTerminators()
+    private static bool SkipTerminators()
     {
-        if (IsAtEnd()) return;
+        if (IsAtEnd()) return false;
 
         while (Peek().GetType() == typeof(Token_Terminator))
         {
             Advance();
-            if (IsAtEnd()) break;
+            if (IsAtEnd()) return true;
         }
+
+        return false;
     }
 }

@@ -2,10 +2,15 @@
 {
     public Dictionary<string, FunctionInfo> functionInfoByName = new();
     public Dictionary<string, TypeInfo> typeInfoByName = new();
+    public Dictionary<string, ClassInfo> classInfoByName = new();
 }
 public class Scope
 {
 
+}
+public class ClassInfo
+{
+    public string name;
 }
 public class FunctionInfo
 {

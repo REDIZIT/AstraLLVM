@@ -112,3 +112,9 @@ public class Token_Visibility : Token
         return word == "public" || word == "private";
     }
 }
+public class Token_Class : Token
+{
+}
+public class Token_New : Token
+{
+}

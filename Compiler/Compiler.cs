@@ -8,7 +8,7 @@
 
         Module module = DiscoverModule(ast);
 
-        string llvm = Generator.Generate(ast);
+        string llvm = Generator.Generate(ast, module);
 
         return llvm;
     }

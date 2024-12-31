@@ -16,6 +16,8 @@
         { ",", typeof(Token_Comma) },
         { "fn", typeof(Token_Fn) },
         { "return", typeof(Token_Return) },
+        { "class", typeof(Token_Class) },
+        { "new", typeof(Token_New) },
     };
 
     public static List<Token> Tokenize(string rawCode)

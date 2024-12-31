@@ -12,7 +12,7 @@
     {
         base.Generate(ctx);
 
-        generatedVariableName = ctx.NextStackUnnamedVariableName();
+        generatedVariableName = ctx.NextStackUnnamedVariableName("i32");
         ctx.b.AppendLine($"{generatedVariableName} = alloca i32");
         ctx.b.AppendLine($"store i32 {constant.value}, i32* {generatedVariableName}");
         ctx.b.AppendLine();

@@ -1,17 +1,13 @@
-﻿
-
-
-
-public class Node_Return : Node
+﻿public class Node_Return : Node
 {
     public Node expr;
     public override void RegisterRefs(Module module)
     {
-        expr.RegisterRefs(module);
+        expr?.RegisterRefs(module);
     }
     public override void ResolveRefs(Module module)
     {
-        expr.ResolveRefs(module);
+        expr?.ResolveRefs(module);
     }
     public override void Generate(Generator.Context ctx)
     {
