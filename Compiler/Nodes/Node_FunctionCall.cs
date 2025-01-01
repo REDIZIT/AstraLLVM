@@ -18,19 +18,33 @@
     {
         base.Generate(ctx);
 
-        TypeInfo returnValueType;
+
+        string functionName = ((Node_VariableUse)caller).variableName;
+
+
+        List<string> paramsDeclars = new();
+        foreach (Node arg in arguments)
+        {
+            arg.Generate(ctx);
+            TypeInfo argType = ctx.GetVariableType(arg.generatedVariableName);
+            string generatedType = (argType is PrimitiveTypeInfo) ? argType.ToString() : "ptr";
+
+            paramsDeclars.Add($"{generatedType} {arg.generatedVariableName}");
+        }
+        string paramsStr = string.Join(", ", paramsDeclars);
+
+
         if (function.returns.Count > 0)
         {
-            returnValueType = function.returns[0];
+            TypeInfo returnValueType = function.returns[0];
+
+            string tempName = ctx.NextTempVariableName(returnValueType);
+            ctx.b.AppendLine($"{tempName} = call {returnValueType} @{functionName}({paramsStr})");
+            generatedVariableName = tempName;
         }
         else
         {
-            throw new Exception("Function does not return any value, but assigning variable.");
+            ctx.b.AppendLine($"call void @{functionName}({paramsStr})");
         }
-
-        string tempName = ctx.NextTempVariableName(returnValueType);
-
-        ctx.b.AppendLine($"{tempName} = call {returnValueType} @{((Node_VariableUse)caller).variableName}()");
-        generatedVariableName = tempName;
     }
 }

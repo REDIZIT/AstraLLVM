@@ -50,10 +50,23 @@
             // Primities already resolved in AppendResolvedLLVMTypes
             if (rawInfo is RawPrimitiveTypeInfo) continue;
 
-            TypeInfo typeInfo = new()
+
+            TypeInfo typeInfo;
+            if (rawInfo is RawClassTypeInfo)
             {
-                name = rawInfo.name
-            };
+                typeInfo = new ClassTypeInfo()
+                {
+                    name = rawInfo.name
+                };
+            }
+            else
+            {
+                typeInfo = new()
+                {
+                    name = rawInfo.name
+                };
+            }
+
             resolved.RegisterType(typeInfo);
         }
 
@@ -84,10 +97,7 @@
         //
         foreach (RawClassTypeInfo rawInfo in raw.classInfoByName.Values)
         {
-            ClassTypeInfo classInfo = new()
-            {
-                name = rawInfo.name
-            };
+            ClassTypeInfo classInfo = (ClassTypeInfo)resolved.GetType(rawInfo.name);
 
             foreach (RawFieldInfo rawField in rawInfo.fields)
             {

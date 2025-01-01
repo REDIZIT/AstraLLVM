@@ -22,7 +22,7 @@
             // dst = ptr
             ctx.b.AppendLine($"store {type_source} {sourceVarName}, ptr {destVarName}");
         }
-        if (isPtr_source && isPtr_dest == false)
+        else if (isPtr_source && isPtr_dest == false)
         {
             // src = ptr
             // dst = type
@@ -39,7 +39,8 @@
         }
         else
         {
-
+            // src = type
+            // dst = type
 
             throw new Exception("Failed to move value between 2 value-types (both are not pointer). This feature is not supported by LLVM IR");
         }

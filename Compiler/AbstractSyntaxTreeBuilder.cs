@@ -1,6 +1,4 @@
-﻿using System.Reflection.Metadata;
-
-public static partial class AbstractSyntaxTreeBuilder
+﻿public static partial class AbstractSyntaxTreeBuilder
 {
     private static List<Token> tokens;
     private static int current;
@@ -211,16 +209,27 @@ public static partial class AbstractSyntaxTreeBuilder
         Token_Identifier functionName = Consume<Token_Identifier>("Expected function name");
         Consume<Token_BracketOpen>("Expected '(' after function name");
 
-        List<Token> parameters = new();
+
+
+        List<VariableRawData> parameters = new();
         if (Check(typeof(Token_BracketClose)) == false)
         {
             do
             {
-                parameters.Add(Consume<Token_Identifier>("Expect parameter name."));
+                var paramType = Consume<Token_Type>("Expected parameter type");
+                var paramName = Consume<Token_Identifier>("Expected parameter name");
+                parameters.Add(new VariableRawData()
+                {
+                    name = paramName.name,
+                    rawType = paramType.type,
+                });
+
             } while (Match(typeof(Token_Comma)));
         }
 
         Consume<Token_BracketClose>("Expected ')' after parameters");
+
+
 
         // Has return type
         List<VariableRawData> returnValues = new();
@@ -239,7 +248,8 @@ public static partial class AbstractSyntaxTreeBuilder
         {
             name = functionName.name,
             body = body,
-            returnValues = returnValues
+            parameters = parameters,
+            returnValues = returnValues,
         };
 
     }

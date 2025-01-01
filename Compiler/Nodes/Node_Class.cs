@@ -32,23 +32,28 @@
         }
 
 
-
+        ////
+        //// Ctor
+        ////
         //Node_Block ctorBlock = new();
 
         //foreach (RawFieldInfo rawFieldInfo in rawInfo.fields)
         //{
-        //    ctorBlock.children.Add(new Node_VariableDeclaration()
+        //    ctorBlock.children.Add(new Node_VariableAssign()
         //    {
-        //        variable = new VariableRawData()
+        //        target = new Node_FieldAccess()
         //        {
-        //            name = "abc_" + rawFieldInfo.name,
-        //            rawType = rawFieldInfo.typeName
+        //            target = new Node_VariableUse()
+        //            {
+        //                variableName = "self"
+        //            },
+        //            targetFieldName = rawFieldInfo.name
         //        },
-        //        initValue = new Node_Literal()
+        //        value = new Node_Literal()
         //        {
         //            constant = new Token_Constant()
         //            {
-        //                value = "99"
+        //                value = "222"
         //            }
         //        }
         //    });
@@ -60,6 +65,14 @@
         //    name = "ctor",
         //    body = ctorBlock,
         //};
+        //ctorNode.parameters.Add(new Node_VariableDeclaration()
+        //{
+        //    variable = new VariableRawData()
+        //    {
+        //        name = "self",
+        //        rawType = "ptr"
+        //    }
+        //});
         //body.children.Add(ctorNode);
 
 
