@@ -122,3 +122,6 @@ public class Token_Class : Token
 public class Token_New : Token
 {
 }
+public class Token_Dot : Token
+{
+}

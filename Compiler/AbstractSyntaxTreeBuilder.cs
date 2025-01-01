@@ -1,4 +1,6 @@
-﻿public static partial class AbstractSyntaxTreeBuilder
+﻿using System.Reflection.Metadata;
+
+public static partial class AbstractSyntaxTreeBuilder
 {
     private static List<Token> tokens;
     private static int current;
@@ -166,6 +168,10 @@
             if (Match(typeof(Token_BracketOpen)))
             {
                 expr = FinishCall(expr, token);
+            }
+            else if (Match(typeof(Token_Dot)))
+            {
+                expr = Property(expr);
             }
             else
             {
@@ -395,8 +401,18 @@
             children = nodes
         };
     }
-    
-    
+
+
+    private static Node Property(Node target)
+    {
+        Token_Identifier ident = Consume<Token_Identifier>();
+
+        return new Node_FieldGet()
+        {
+            target = target,
+            targetFieldName = ident.name,
+        };
+    }
     private static Node FinishCall(Node caller, Token_Identifier ident)
     {
         List<Node> arguments = new();

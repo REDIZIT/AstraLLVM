@@ -18,6 +18,7 @@
         { "return", typeof(Token_Return) },
         { "class", typeof(Token_Class) },
         { "new", typeof(Token_New) },
+        { ".", typeof(Token_Dot) },
     };
 
     public static List<Token> Tokenize(string rawCode)

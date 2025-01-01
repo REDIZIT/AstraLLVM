@@ -34,3 +34,7 @@ public class RawTypeInfo
 {
     public string name;
 }
+public class RawPrimitiveTypeInfo : RawTypeInfo
+{
+    public string asmName;
+}

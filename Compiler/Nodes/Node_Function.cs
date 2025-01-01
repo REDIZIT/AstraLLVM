@@ -3,7 +3,7 @@
     public string name;
     public Node body;
     public List<Node> parameters;
-    public List<VariableRawData> returnValues;
+    public List<VariableRawData> returnValues = new();
 
     public override void RegisterRefs(RawModule raw)
     {

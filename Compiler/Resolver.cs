@@ -24,7 +24,6 @@
 
         ResolvedModule resolved = ResolveRawModule(raw);
 
-        AppendResolvedLLVMTypes(resolved);
         foreach (Node node in ast)
         {
             node.ResolveRefs(resolved);
@@ -41,12 +40,16 @@
     private static ResolvedModule ResolveRawModule(RawModule raw)
     {
         ResolvedModule resolved = new();
+        AppendResolvedLLVMTypes(resolved);
 
         //
         // Resolve Types (include custom Classes/Structs)
         //
         foreach (RawTypeInfo rawInfo in raw.typeInfoByName.Values)
         {
+            // Primities already resolved in AppendResolvedLLVMTypes
+            if (rawInfo is RawPrimitiveTypeInfo) continue;
+
             TypeInfo typeInfo = new()
             {
                 name = rawInfo.name
@@ -105,24 +108,26 @@
 
     private static void AppendRawLLVMTypes(RawModule module)
     {
-        for (int i = 1; i <= 64; i++)
+        for (int i = 1; i <= 64; i *= 2)
         {
-            RawTypeInfo type = new()
+            RawPrimitiveTypeInfo type = new()
             {
-                name = "i" + i
+                name = "i" + i,
+                asmName = "i" + i
             };
             module.typeInfoByName[type.name] = type;
         }
 
-        RawTypeInfo ptrType = new()
+        RawPrimitiveTypeInfo ptrType = new()
         {
-            name = "ptr"
+            name = "ptr",
+            asmName = "ptr"
         };
         module.typeInfoByName[ptrType.name] = ptrType;
     }
     private static void AppendResolvedLLVMTypes(ResolvedModule module)
     {
-        for (int i = 1; i <= 64; i++)
+        for (int i = 1; i <= 64; i *= 2)
         {
             PrimitiveTypeInfo type = new PrimitiveTypeInfo()
             {

@@ -13,6 +13,11 @@
         raw.RegisterClass(rawInfo);
 
 
+        
+
+        //
+        // Register RawFieldInfos
+        //
         foreach (Node statement in body.children)
         {
             if (statement is Node_VariableDeclaration declaration)
@@ -25,6 +30,38 @@
                 rawInfo.fields.Add(field);
             }
         }
+
+
+
+        //Node_Block ctorBlock = new();
+
+        //foreach (RawFieldInfo rawFieldInfo in rawInfo.fields)
+        //{
+        //    ctorBlock.children.Add(new Node_VariableDeclaration()
+        //    {
+        //        variable = new VariableRawData()
+        //        {
+        //            name = "abc_" + rawFieldInfo.name,
+        //            rawType = rawFieldInfo.typeName
+        //        },
+        //        initValue = new Node_Literal()
+        //        {
+        //            constant = new Token_Constant()
+        //            {
+        //                value = "99"
+        //            }
+        //        }
+        //    });
+        //}
+        //ctorBlock.children.Add(new Node_Return());
+
+        //Node_Function ctorNode = new Node_Function()
+        //{
+        //    name = "ctor",
+        //    body = ctorBlock,
+        //};
+        //body.children.Add(ctorNode);
+
 
         body.RegisterRefs(raw);
     }
