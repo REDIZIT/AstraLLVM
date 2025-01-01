@@ -13,7 +13,9 @@
         raw.RegisterClass(rawInfo);
 
 
-        
+
+
+        Node_Block ctorBlock = new();
 
         //
         // Register RawFieldInfos
@@ -28,52 +30,37 @@
                     typeName = declaration.variable.rawType
                 };
                 rawInfo.fields.Add(field);
+
+                
+
+                ctorBlock.children.Add(new Node_VariableAssign()
+                {
+                    target = new Node_FieldAccess()
+                    {
+                        target = new Node_VariableUse()
+                        {
+                            variableName = "self"
+                        },
+                        targetFieldName = field.name
+                    },
+                    value = declaration.initValue
+                });
             }
         }
 
+        ctorBlock.children.Add(new Node_Return());
 
-        ////
-        //// Ctor
-        ////
-        //Node_Block ctorBlock = new();
-
-        //foreach (RawFieldInfo rawFieldInfo in rawInfo.fields)
-        //{
-        //    ctorBlock.children.Add(new Node_VariableAssign()
-        //    {
-        //        target = new Node_FieldAccess()
-        //        {
-        //            target = new Node_VariableUse()
-        //            {
-        //                variableName = "self"
-        //            },
-        //            targetFieldName = rawFieldInfo.name
-        //        },
-        //        value = new Node_Literal()
-        //        {
-        //            constant = new Token_Constant()
-        //            {
-        //                value = "222"
-        //            }
-        //        }
-        //    });
-        //}
-        //ctorBlock.children.Add(new Node_Return());
-
-        //Node_Function ctorNode = new Node_Function()
-        //{
-        //    name = "ctor",
-        //    body = ctorBlock,
-        //};
-        //ctorNode.parameters.Add(new Node_VariableDeclaration()
-        //{
-        //    variable = new VariableRawData()
-        //    {
-        //        name = "self",
-        //        rawType = "ptr"
-        //    }
-        //});
-        //body.children.Add(ctorNode);
+        Node_Function ctorNode = new Node_Function()
+        {
+            name = name + "__ctor",
+            body = ctorBlock,
+        };
+        ctorNode.parameters.Add(new VariableRawData()
+        {
+            name = "self",
+            rawType = name
+        });
+        body.children.Add(ctorNode);
 
 
         body.RegisterRefs(raw);
@@ -118,8 +105,13 @@ public class Node_New : Node
         base.Generate(ctx);
 
         string tempName = ctx.NextPointerVariableName(classInfo);
-        ctx.b.AppendLine($"{tempName} = alloca %{classInfo.name}");
+        Generate(ctx, tempName);
+    }
+    public void Generate(Generator.Context ctx, string generatedName)
+    {
+        ctx.b.AppendLine($"{generatedName} = alloca %{classInfo.name}");
+        ctx.b.AppendLine($"call void @{classInfo.name}__ctor(ptr {generatedName})");
         ctx.b.AppendLine();
-        generatedVariableName = tempName;
+        generatedVariableName = generatedName;
     }
 }

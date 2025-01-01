@@ -67,7 +67,7 @@
     }
     private void Generate_WithInit_New(Generator.Context ctx, Node_New tokenNew)
     {
-        ctx.b.AppendLine($"{generatedVariableName} = alloca %{tokenNew.classInfo.name}");
+        tokenNew.Generate(ctx, "%" + variable.name);
     }
 }
 

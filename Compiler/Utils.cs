@@ -34,8 +34,9 @@
             // src = ptr
             // dst = ptr
             string tempName = ctx.NextTempVariableName(type_source);
-            ctx.b.AppendLine($"{tempName} = load {type_source}, ptr {sourceVarName}");
-            ctx.b.AppendLine($"store {type_source} {tempName}, ptr {destVarName}");
+            TypeInfo valueType = ctx.GetPointedType(sourceVarName);
+            ctx.b.AppendLine($"{tempName} = load {valueType}, ptr {sourceVarName}");
+            ctx.b.AppendLine($"store {valueType} {tempName}, ptr {destVarName}");
         }
         else
         {
