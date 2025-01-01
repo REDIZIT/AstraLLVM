@@ -1,7 +1,10 @@
-﻿public class Node_FieldGet : Node
+﻿public class Node_FieldAccess : Node
 {
     public Node target;
     public string targetFieldName;
+
+    // Valid after Generate
+    protected FieldInfo fieldInfo;
 
     public override void RegisterRefs(RawModule module)
     {
@@ -17,18 +20,17 @@
 
         target.Generate(ctx);
 
-        string typeName = ctx.GetVariableType(target.generatedVariableName).name;
+        string typeName = ctx.GetPointedType(target.generatedVariableName).name;
         ClassTypeInfo targetType = ctx.module.classInfoByName[typeName];
 
         int indexOfField = targetType.fields.IndexOf(i => i.name == targetFieldName);
         if (indexOfField == -1) throw new Exception($"Field '{targetFieldName}' not found in class '{targetType}'");
-        FieldInfo fieldInfo = targetType.fields[indexOfField];
+        fieldInfo = targetType.fields[indexOfField];
 
-        string ptr = ctx.NextTempVariableName(PrimitiveTypeInfo.PTR);
+        string ptr = ctx.NextPointerVariableName(fieldInfo.type);
         ctx.b.AppendLine($"{ptr} = getelementptr {targetType}, ptr {target.generatedVariableName}, i32 0, i32 {indexOfField}");
+        ctx.b.AppendLine();
 
-        generatedVariableName = ctx.NextTempVariableName(fieldInfo.type);
-        ctx.b.AppendLine($"{generatedVariableName} = load {fieldInfo.type}, ptr {ptr}");
-
+        generatedVariableName = ptr;
     }
 }

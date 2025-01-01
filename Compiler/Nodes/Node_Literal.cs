@@ -14,7 +14,7 @@
 
         PrimitiveTypeInfo literalType = PrimitiveTypeInfo.INT;
 
-        generatedVariableName = ctx.NextStackUnnamedVariableName(literalType);
+        generatedVariableName = ctx.NextPointerVariableName(literalType);
         ctx.b.AppendLine($"{generatedVariableName} = alloca {literalType.asmName}");
         ctx.b.AppendLine($"store {literalType.asmName} {constant.value}, {PrimitiveTypeInfo.PTR} {generatedVariableName}");
         ctx.b.AppendLine();

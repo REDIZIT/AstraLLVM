@@ -56,27 +56,30 @@ public static partial class AbstractSyntaxTreeBuilder
     }
     private static Node Assignment()
     {
-        Node expr = Equality();
+        // Target
+        Node left = Equality();
 
+        // '='
         if (Match(typeof(Token_Assign)))
         {
-            Node value = Assignment();
+            // Value
+            Node right = Assignment();
 
-            if (expr is Node_VariableUse variableUse)
+            if (left is Node_VariableUse || left is Node_FieldAccess)
             {
                 return new Node_VariableAssign()
                 {
-                    variableName = variableUse.variableName,
-                    value = value
+                    target = left,
+                    value = right
                 };
             }
             else
             {
-                throw new Exception("Expected variable name to assign, but no such token after '='");
+                throw new Exception("Expected variable name or field access to assign, but no such token found after '='");
             }
         }
 
-        return expr;
+        return left;
     }
     private static Node Equality()
     {
@@ -407,7 +410,7 @@ public static partial class AbstractSyntaxTreeBuilder
     {
         Token_Identifier ident = Consume<Token_Identifier>();
 
-        return new Node_FieldGet()
+        return new Node_FieldAccess()
         {
             target = target,
             targetFieldName = ident.name,

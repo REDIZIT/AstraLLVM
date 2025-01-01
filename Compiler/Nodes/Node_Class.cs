@@ -104,7 +104,7 @@ public class Node_New : Node
     {
         base.Generate(ctx);
 
-        string tempName = ctx.NextStackUnnamedVariableName(classInfo);
+        string tempName = ctx.NextPointerVariableName(classInfo);
         ctx.b.AppendLine($"{tempName} = alloca %{classInfo.name}");
         ctx.b.AppendLine();
         generatedVariableName = tempName;

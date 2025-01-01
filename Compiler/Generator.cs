@@ -11,41 +11,52 @@ public static class Generator
         public int localVariablesCount = 0;
 
         public Dictionary<string, TypeInfo> typeByVariableName = new();
+        public Dictionary<string, TypeInfo> pointedTypeByVariableName = new();
 
         public ResolvedModule module;
 
-        public string NextStackUnnamedVariableName(TypeInfo type)
-        {
-            string varName = $"%local_{localVariablesCount}";
-            localVariablesCount++;
-            stackVariables.Add(varName);
-            typeByVariableName.Add(varName, type);
-            return varName;
-        }
         public string NextTempVariableName(TypeInfo type)
         {
-            string varName = $"%tmp_{tempVariablesCount}";
+            string varName = $"%tmp_{tempVariablesCount}_{type.name}";
             tempVariablesCount++;
             tempVariables.Add(varName);
             typeByVariableName.Add(varName, type);
             return varName;
         }
-        public string RegisterStackVariable(string name, TypeInfo type)
+        public string NextPointerVariableName(TypeInfo pointedType, string name = null)
         {
-            string varName = "%" + name;
-            stackVariables.Add(varName);
-            typeByVariableName.Add(varName, type);
-            return varName;
+            string generatedName;
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                generatedName = $"%ptr_{localVariablesCount}_{pointedType.name}";
+                localVariablesCount++;
+            }
+            else
+            {
+                generatedName = "%" + name;
+            }
+
+
+            stackVariables.Add(generatedName);
+
+            typeByVariableName.Add(generatedName, PrimitiveTypeInfo.PTR);
+            pointedTypeByVariableName.Add(generatedName, pointedType);
+
+            return generatedName;
         }
 
         public bool IsPointer(string generatedName)
         {
-            return stackVariables.Contains(generatedName);
+            return typeByVariableName[generatedName] == PrimitiveTypeInfo.PTR;
         }
 
         public TypeInfo GetVariableType(string variableName)
         {
             return typeByVariableName[variableName];
+        }
+        public TypeInfo GetPointedType(string pointerVariableName)
+        {
+            return pointedTypeByVariableName[pointerVariableName];
         }
     }
 

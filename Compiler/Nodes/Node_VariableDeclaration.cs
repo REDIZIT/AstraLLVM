@@ -18,7 +18,7 @@
     {
         base.Generate(ctx);
 
-        generatedVariableName = ctx.RegisterStackVariable(variable.name, variable.type);
+        generatedVariableName = ctx.NextPointerVariableName(variable.type, variable.name);
 
         if (initValue == null)
         {
@@ -87,28 +87,5 @@ public class Node_VariableUse : Node
         base.Generate(ctx);
 
         generatedVariableName = "%" + variableName;
-    }
-}
-public class Node_VariableAssign : Node
-{
-    public string variableName;
-    public Node value;
-
-    public override void RegisterRefs(RawModule module)
-    {
-        value.RegisterRefs(module);
-    }
-    public override void ResolveRefs(ResolvedModule module)
-    {
-        value.ResolveRefs(module);
-    }
-
-    public override void Generate(Generator.Context ctx)
-    {
-        base.Generate(ctx);
-
-        value.Generate(ctx);
-
-        Utils.MoveValue(value.generatedVariableName, "%" + variableName, ctx);
     }
 }
