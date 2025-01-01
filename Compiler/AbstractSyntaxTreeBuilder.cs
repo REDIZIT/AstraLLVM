@@ -184,9 +184,7 @@
         Token_Type ident = Consume<Token_Type>();
         Consume<Token_BlockOpen>("Expected '{' after class declaration", skipTerminators: true);
 
-        var body = FunctionsAndFieldsDeclaration();
-
-        Consume<Token_BlockClose>("Expected '}' after class body", skipTerminators: true);
+        var body = (Node_Block)Block();
 
         return new Node_Class()
         {
@@ -377,11 +375,16 @@
             elseBranch = elseBranch
         };
     }
+
+    /// <summary>
+    /// Before entering Block method you make sure that <see cref="Token_BlockOpen"></see> is already consumed.<br/>
+    /// After exiting Block method will be guaranteed that <see cref="Token_BlockClose"></see> is already consumed. (You should not consume it manually)
+    /// </summary>
     private static Node Block()
     {
         List<Node> nodes = new();
 
-        while (Check(typeof(Token_BlockClose)) == false && IsAtEnd() == false)
+        while (Check(typeof(Token_BlockClose), skipTerminators: true) == false && IsAtEnd() == false)
         {
             nodes.Add(Declaration());
         }

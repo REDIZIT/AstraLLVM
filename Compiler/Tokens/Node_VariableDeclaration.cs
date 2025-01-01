@@ -3,15 +3,12 @@
     public VariableRawData variable;
     public Node initValue;
 
-    private Module module;
-
-    public override void RegisterRefs(Module module)
+    public override void RegisterRefs(RawModule module)
     {
-        this.module = module;
         initValue?.RegisterRefs(module);
     }
 
-    public override void ResolveRefs(Module module)
+    public override void ResolveRefs(ResolvedModule module)
     {
         initValue?.ResolveRefs(module);
         variable.Resolve(module);
@@ -78,10 +75,10 @@ public class Node_VariableUse : Node
 {
     public string variableName;
 
-    public override void RegisterRefs(Module module)
+    public override void RegisterRefs(RawModule module)
     {
     }
-    public override void ResolveRefs(Module module)
+    public override void ResolveRefs(ResolvedModule module)
     {
     }
 
@@ -97,11 +94,11 @@ public class Node_VariableAssign : Node
     public string variableName;
     public Node value;
 
-    public override void RegisterRefs(Module module)
+    public override void RegisterRefs(RawModule module)
     {
         value.RegisterRefs(module);
     }
-    public override void ResolveRefs(Module module)
+    public override void ResolveRefs(ResolvedModule module)
     {
         value.ResolveRefs(module);
     }

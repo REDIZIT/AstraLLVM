@@ -1,29 +1,52 @@
 ﻿public class Node_Class : Node
 {
     public string name;
-    public Node body;
+    public Node_Block body;
 
-    public override void RegisterRefs(Module module)
+    public override void RegisterRefs(RawModule raw)
     {
-        ClassTypeInfo typeInfo = new ClassTypeInfo()
+        var rawInfo = new RawClassTypeInfo()
         {
             name = name
         };
 
-        module.typeInfoByName.Add(name, typeInfo);
-        module.classInfoByName.Add(name, typeInfo);
+        raw.RegisterClass(rawInfo);
 
-        body.RegisterRefs(module);
+
+        foreach (Node statement in body.children)
+        {
+            if (statement is Node_VariableDeclaration declaration)
+            {
+                RawFieldInfo field = new()
+                {
+                    name = declaration.variable.name,
+                    typeName = declaration.variable.rawType
+                };
+                rawInfo.fields.Add(field);
+            }
+        }
+
+        body.RegisterRefs(raw);
     }
-    public override void ResolveRefs(Module module)
+    public override void ResolveRefs(ResolvedModule resolved)
     {
-        body.ResolveRefs(module);
+        body.ResolveRefs(resolved);
     }
     public override void Generate(Generator.Context ctx)
     {
         base.Generate(ctx);
 
-        body.Generate(ctx);
+        foreach (Node statement in body.children)
+        {
+            if (statement is Node_Function)
+            {
+                statement.Generate(ctx);
+            }
+            else if (statement is Node_VariableDeclaration == false)
+            {
+                throw new Exception($"For class generation expected only {nameof(Node_Function)} or {nameof(Node_VariableDeclaration)} but got {statement}");
+            }
+        }
     }
 }
 public class Node_New : Node
@@ -32,13 +55,13 @@ public class Node_New : Node
 
     public ClassTypeInfo classInfo;
 
-    public override void RegisterRefs(Module module)
+    public override void RegisterRefs(RawModule module)
     {
         
     }
-    public override void ResolveRefs(Module module)
+    public override void ResolveRefs(ResolvedModule resolved)
     {
-        classInfo = module.classInfoByName[className];
+        classInfo = resolved.classInfoByName[className];
     }
     public override void Generate(Generator.Context ctx)
     {

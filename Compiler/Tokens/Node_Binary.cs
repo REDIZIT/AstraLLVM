@@ -3,12 +3,12 @@
     public Node left, right;
     public Token_Operator @operator;
 
-    public override void RegisterRefs(Module module)
+    public override void RegisterRefs(RawModule module)
     {
         left.RegisterRefs(module);
         right.RegisterRefs(module);
     }
-    public override void ResolveRefs(Module module)
+    public override void ResolveRefs(ResolvedModule module)
     {
         left.ResolveRefs(module);
         right.ResolveRefs(module);
@@ -37,11 +37,11 @@ public class Node_Unary : Node
     public Node right;
     public Token_Operator @operator;
 
-    public override void RegisterRefs(Module module)
+    public override void RegisterRefs(RawModule module)
     {
         right.RegisterRefs(module);
     }
-    public override void ResolveRefs(Module module)
+    public override void ResolveRefs(ResolvedModule module)
     {
         right.ResolveRefs(module);
     }

@@ -12,7 +12,7 @@ public static class Generator
 
         public Dictionary<string, TypeInfo> typeByVariableName = new();
 
-        public Module module;
+        public ResolvedModule module;
 
         public string NextStackUnnamedVariableName(TypeInfo type)
         {
@@ -49,7 +49,7 @@ public static class Generator
         }
     }
 
-    public static string Generate(List<Node> statements, Module module)
+    public static string Generate(List<Node> statements, ResolvedModule module)
     {
         Context ctx = new()
         {
@@ -61,7 +61,8 @@ public static class Generator
         ctx.b.AppendLine($";");
         foreach (ClassTypeInfo info in module.classInfoByName.Values)
         {
-            ctx.b.AppendLine($"%{info.name} = type {{ i32 }}");
+            string typesStr = string.Join(", ", info.fields.Select(f => f.type.ToString()));
+            ctx.b.AppendLine($"%{info.name} = type {{ {typesStr} }}");
         }
 
         ctx.b.AppendLine();

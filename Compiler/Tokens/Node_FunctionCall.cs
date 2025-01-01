@@ -6,10 +6,10 @@
 
     public FunctionInfo function;
 
-    public override void RegisterRefs(Module module)
+    public override void RegisterRefs(RawModule module)
     {
     }
-    public override void ResolveRefs(Module module)
+    public override void ResolveRefs(ResolvedModule module)
     {
         function = module.functionInfoByName[functionName];
     }

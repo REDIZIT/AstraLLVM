@@ -5,25 +5,26 @@
     public List<Node> parameters;
     public List<VariableRawData> returnValues;
 
-    public override void RegisterRefs(Module module)
+    public override void RegisterRefs(RawModule raw)
     {
-        FunctionInfo info = new()
+        RawFunctionInfo rawInfo = new()
         {
             name = name
         };
 
         foreach (VariableRawData data in returnValues)
         {
-            TypeInfo type = module.GetType(data.rawType);
-            info.returns.Add(type);
+            rawInfo.returns.Add(new RawTypeInfo()
+            {
+                name = data.rawType
+            });
         }
 
-        module.functionInfoByName.Add(name, info);
+        raw.RegisterFunction(rawInfo);
 
-
-        body.RegisterRefs(module);
+        body.RegisterRefs(raw);
     }
-    public override void ResolveRefs(Module module)
+    public override void ResolveRefs(ResolvedModule module)
     {
         body.ResolveRefs(module);
         foreach (VariableRawData rawData in returnValues)

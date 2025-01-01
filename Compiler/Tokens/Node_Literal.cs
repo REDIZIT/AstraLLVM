@@ -2,10 +2,10 @@
 {
     public Token_Constant constant;
 
-    public override void RegisterRefs(Module module)
+    public override void RegisterRefs(RawModule module)
     {
     }
-    public override void ResolveRefs(Module module)
+    public override void ResolveRefs(ResolvedModule module)
     {
     }
     public override void Generate(Generator.Context ctx)

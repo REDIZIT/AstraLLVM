@@ -1,11 +1,11 @@
 ﻿public class Node_Return : Node
 {
     public Node expr;
-    public override void RegisterRefs(Module module)
+    public override void RegisterRefs(RawModule module)
     {
         expr?.RegisterRefs(module);
     }
-    public override void ResolveRefs(Module module)
+    public override void ResolveRefs(ResolvedModule module)
     {
         expr?.ResolveRefs(module);
     }

@@ -2,13 +2,13 @@
 {
     public Node condition, thenBranch, elseBranch;
 
-    public override void RegisterRefs(Module module)
+    public override void RegisterRefs(RawModule module)
     {
         condition.RegisterRefs(module);
         thenBranch.RegisterRefs(module);
         elseBranch?.RegisterRefs(module);
     }
-    public override void ResolveRefs(Module module)
+    public override void ResolveRefs(ResolvedModule module)
     {
         condition.ResolveRefs(module);
         thenBranch.ResolveRefs(module);
