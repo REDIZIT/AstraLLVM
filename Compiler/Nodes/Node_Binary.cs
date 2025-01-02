@@ -53,22 +53,20 @@ public class Node_Unary : Node
 
         string rightName = Utils.SureNotPointer(right.generatedVariableName, ctx);
 
-        TypeInfo boolType = PrimitiveTypeInfo.BOOL;
 
         // Logical not
         if (@operator.asmOperatorName == "not")
         {
-            TypeInfo rightType = ctx.module.GetType(rightName);
-            string tempName = ctx.NextTempVariableName(boolType);
+            TypeInfo rightType = ctx.GetVariableType(rightName);
+            string tempName = ctx.NextTempVariableName(PrimitiveTypeInfo.BOOL);
             ctx.b.AppendLine($"{tempName} = icmp sle {rightType} {rightName}, 0");
 
             generatedVariableName = tempName;
         }
-
-        if (@operator.asmOperatorName == "-")
+        else if (@operator.asmOperatorName == "sub")
         {
-            TypeInfo rightType = ctx.module.GetType(rightName);
-            string tempName = ctx.NextTempVariableName(boolType);
+            TypeInfo rightType = ctx.GetVariableType(rightName);
+            string tempName = ctx.NextTempVariableName(rightType);
             ctx.b.AppendLine($"{tempName} = sub {rightType} 0, {rightName}");
 
             generatedVariableName = tempName;

@@ -141,7 +141,7 @@
 
         if (Token_Equality.TryMatch(word, out var eq)) return eq;
         if (Token_Comprassion.TryMatch(word, out var cmp)) return cmp;
-        if (Token_Term.TryMatch(word, out var term)) return term;
+        if (Token_AddSub.TryMatch(word, out var term)) return term;
         if (Token_Factor.TryMatch(word, out var fact)) return fact;
 
         if (tokenTypeBySingleWord.TryGetValue(word, out Type tokenType))

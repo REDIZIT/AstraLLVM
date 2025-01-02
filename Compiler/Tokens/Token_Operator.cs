@@ -59,13 +59,13 @@ public class Token_Comprassion : Token_Operator
         return word == ">" || word == ">=" || word == "<" || word == "<=";
     }
 }
-public class Token_Term : Token_Operator
+public class Token_AddSub : Token_Operator
 {
-    public static bool TryMatch(string word, out Token_Term op)
+    public static bool TryMatch(string word, out Token_AddSub op)
     {
         if (IsMatch(word))
         {
-            op = new Token_Term();
+            op = new Token_AddSub();
 
             if (word == "+") op.asmOperatorName = "add";
             if (word == "-") op.asmOperatorName = "sub";
@@ -122,6 +122,6 @@ public class Token_Unary : Token_Operator
     }
     public static bool IsMatch(string word)
     {
-        return word == "not" || word == "-";
+        return word == "not";
     }
 }

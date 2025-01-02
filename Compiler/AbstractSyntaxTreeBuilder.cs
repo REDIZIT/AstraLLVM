@@ -83,12 +83,12 @@
     {
         Node left = Comprassion();
 
-        while (Match(typeof(Token_Equality)))
+        while (Match(out Token_Equality operatorToken))
         {
             left = new Node_Binary()
             {
                 left = left,
-                @operator = Previous<Token_Operator>(),
+                @operator = operatorToken,
                 right = Comprassion()
             };
         }
@@ -99,12 +99,12 @@
     {
         Node left = AddSub();
 
-        while (Match(typeof(Token_Comprassion)))
+        while (Match(out Token_Comprassion operatorToken))
         {
             left = new Node_Binary()
             {
                 left = left,
-                @operator = Previous<Token_Operator>(),
+                @operator = operatorToken,
                 right = AddSub()
             };
         }
@@ -115,12 +115,12 @@
     {
         Node left = MulDiv();
 
-        while (Match(typeof(Token_Term)))
+        while (Match(out Token_AddSub operatorToken))
         {
             left = new Node_Binary()
             {
                 left = left,
-                @operator = Previous<Token_Operator>(),
+                @operator = operatorToken,
                 right = MulDiv()
             };
         }
@@ -131,13 +131,13 @@
     {
         Node left = NotNeg();
 
-        while (Match(typeof(Token_Factor)))
+        while (Match(out Token_Factor operatorToken))
         {
             Node right = NotNeg();
             left = new Node_Binary()
             {
                 left = left,
-                @operator = Previous<Token_Operator>(),
+                @operator = operatorToken,
                 right = right
             };
         }
@@ -146,13 +146,28 @@
     }
     private static Node NotNeg()
     {
-        while (Match(typeof(Token_Unary)))
+        if (Match(out Token_Unary operatorToken))
         {
             return new Node_Unary()
             {
-                @operator = Previous<Token_Operator>(),
+                @operator = operatorToken,
                 right = NotNeg()
             };
+        }
+        else if (Peek() is Token_AddSub tokenAddSub && tokenAddSub.asmOperatorName == "sub")
+        {
+            Token tokenBeforeSub = Previous();
+
+            if (tokenBeforeSub is Token_Assign)
+            {
+                Consume<Token_AddSub>();
+
+                return new Node_Unary()
+                {
+                    @operator = tokenAddSub,
+                    right = NotNeg()
+                };
+            }
         }
 
         return Call();
@@ -470,7 +485,7 @@
         {
             Node expr = Expression();
             Consume(typeof(Token_BracketClose), "Expect ')' after expression.");
-            return new Expr_Grouping()
+            return new Node_Grouping()
             {
                 expression = expr
             };
@@ -489,6 +504,16 @@
     }
 
 
+    private static bool Match<T>(out T token) where T : Token
+    {
+        if (Check(typeof(T), true))
+        {
+            token = (T)Advance();
+            return true;
+        }
+        token = null;
+        return false;
+    }
     private static bool Match(Type tokenType)
     {
         if (Check(tokenType, true))
