@@ -18,42 +18,6 @@ public class Token_BracketOpen : Token
 public class Token_BracketClose : Token
 {
 }
-public class Token_Type : Token
-{
-    public string type;
-
-    public static bool TryMatch(string word, out Token_Type token)
-    {
-        if (IsMatch(word))
-        {
-            token = new Token_Type()
-            {
-                type = word
-            };
-            return true;
-        }
-        token = null;
-        return false;
-    }
-    public static bool IsMatch(string word)
-    {
-        if (word.StartsWith("i") && int.TryParse(word[1..], out int bits))
-        {
-            if (bits <= 0) throw new Exception("Int type can not has zero or less bits");
-            return true;
-        }
-
-        //
-        // TODO: REWORK TOKEN_TYPE (AND PROBABLY TOKENIZER AND AST)
-        //
-        if (word == "program" || word == "ptr")
-        {
-            return true;
-        }
-
-        return false;
-    }
-}
 public class Token_Identifier : Token
 {
     public string name;

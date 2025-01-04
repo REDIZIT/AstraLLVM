@@ -77,10 +77,6 @@
                     {
                         tokens.Add(vis);
                     }
-                    else if (Token_Type.TryMatch(word, out var type))
-                    {
-                        tokens.Add(type);
-                    }
                     else if (Token_Identifier.IsMatch(word))
                     {
                         tokens.Add(new Token_Identifier()

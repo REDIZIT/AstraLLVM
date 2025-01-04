@@ -33,7 +33,7 @@
     }
     public static Node FunctionsAndFieldsDeclaration()
     {
-        if (Match(typeof(Token_Type))) return VariableDeclaration();
+        if (Match(typeof(Token_Identifier))) return VariableDeclaration();
         if (Match(typeof(Token_Visibility))) return FunctionDeclaration();
 
         return Statement();
@@ -203,14 +203,14 @@
 
     private static Node ClassDeclaration()
     {
-        Token_Type ident = Consume<Token_Type>();
+        Token_Identifier ident = Consume<Token_Identifier>();
         Consume<Token_BlockOpen>("Expected '{' after class declaration", skipTerminators: true);
 
         var body = (Node_Block)Block();
 
         return new Node_Class()
         {
-            name = ident.type,
+            name = ident.name,
             body = body
         };
     }
@@ -231,12 +231,12 @@
         {
             do
             {
-                var paramType = Consume<Token_Type>("Expected parameter type");
+                var paramType = Consume<Token_Identifier>("Expected parameter type");
                 var paramName = Consume<Token_Identifier>("Expected parameter name");
                 parameters.Add(new VariableRawData()
                 {
                     name = paramName.name,
-                    rawType = paramType.type,
+                    rawType = paramType.name,
                 });
 
             } while (Match(typeof(Token_Comma)));
@@ -270,13 +270,13 @@
     }
     private static VariableRawData ReturnValueDeclaration()
     {
-        if (Match(typeof(Token_Type)))
+        if (Match(typeof(Token_Identifier)))
         {
-            Token_Type type = (Token_Type)Previous();
+            var type = Previous<Token_Identifier>();
 
             VariableRawData data = new()
             {
-                rawType = type.type
+                rawType = type.name
             };
 
             if (Check(typeof(Token_Identifier)))
@@ -294,8 +294,8 @@
     }
     private static Node VariableDeclaration()
     {
-        Token_Type type = (Token_Type)Previous();
-        Token_Identifier varNameToken = (Token_Identifier)Consume(typeof(Token_Identifier), "Expect variable name.");
+        var type = Previous<Token_Identifier>();
+        var varNameToken = Consume<Token_Identifier>("Expect variable name.");
 
         Node initValue = null;
         if (Match(typeof(Token_Assign)))
@@ -307,7 +307,7 @@
         {
             variable = new VariableRawData()
             {
-                rawType = type.type,
+                rawType = type.name,
                 name = varNameToken.name
             },
             initValue = initValue
