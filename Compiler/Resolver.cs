@@ -134,6 +134,13 @@
             asmName = "ptr"
         };
         module.typeInfoByName[ptrType.name] = ptrType;
+
+        RawPrimitiveTypeInfo arrayType = new()
+        {
+            name = "array",
+            asmName = "array"
+        };
+        module.typeInfoByName[arrayType.name] = arrayType;
     }
     private static void AppendResolvedLLVMTypes(ResolvedModule module)
     {
@@ -160,5 +167,15 @@
         };
         module.typeInfoByName[ptrType.name] = ptrType;
         PrimitiveTypeInfo.PTR = ptrType;
+
+
+
+        PrimitiveTypeInfo arrayType = new()
+        {
+            name = "array",
+            asmName = "array",
+        };
+        module.typeInfoByName[arrayType.name] = arrayType;
+        PrimitiveTypeInfo.ARRAY = arrayType;
     }
 }

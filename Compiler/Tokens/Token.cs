@@ -94,3 +94,9 @@ public class Token_New : Token
 public class Token_Dot : Token
 {
 }
+public class Token_SquareBracketOpen : Token
+{
+}
+public class Token_SquareBracketClose : Token
+{
+}

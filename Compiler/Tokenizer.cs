@@ -19,6 +19,8 @@
         { "class", typeof(Token_Class) },
         { "new", typeof(Token_New) },
         { ".", typeof(Token_Dot) },
+        { "[", typeof(Token_SquareBracketOpen) },
+        { "]", typeof(Token_SquareBracketClose) },
     };
 
     public static List<Token> Tokenize(string rawCode)

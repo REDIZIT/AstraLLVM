@@ -24,10 +24,10 @@
         {
             Generate_WithDefaultValue(ctx);
         }
-        else if (initValue is Node_Literal literal)
-        {
-            Generate_WithInit_Literal(ctx, literal);
-        }
+        //else if (initValue is Node_Literal literal)
+        //{
+        //    Generate_WithInit_Literal(ctx, literal);
+        //}
         else if (initValue is Node_New tokenNew)
         {
             Generate_WithInit_New(ctx, tokenNew);
@@ -42,6 +42,12 @@
 
     private void Generate_WithDefaultValue(Generator.Context ctx)
     {
+        if (variable.type == PrimitiveTypeInfo.ARRAY)
+        {
+            Generate_Array_WithDefaultValue(ctx);
+            return;
+        }
+
         ctx.b.AppendLine($"{generatedVariableName} = alloca {variable.type}");
 
         if (variable.type is PrimitiveTypeInfo)
@@ -68,6 +74,12 @@
     private void Generate_WithInit_New(Generator.Context ctx, Node_New tokenNew)
     {
         tokenNew.Generate(ctx, "%" + variable.name);
+    }
+
+
+    private void Generate_Array_WithDefaultValue(Generator.Context ctx)
+    {
+        ctx.b.AppendLine($"{generatedVariableName} = alloca [10 x i32]");
     }
 }
 

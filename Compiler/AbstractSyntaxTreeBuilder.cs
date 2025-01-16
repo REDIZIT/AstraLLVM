@@ -295,6 +295,14 @@
     private static Node VariableDeclaration()
     {
         var type = Previous<Token_Identifier>();
+
+        bool isArray = false;
+        if (Check(typeof(Token_SquareBracketOpen)))
+        {
+            isArray = true;
+            Consume<Token_SquareBracketOpen>();
+            Consume<Token_SquareBracketClose>();
+        }
         var varNameToken = Consume<Token_Identifier>("Expect variable name.");
 
         Node initValue = null;
@@ -307,7 +315,7 @@
         {
             variable = new VariableRawData()
             {
-                rawType = type.name,
+                rawType = isArray ? "array" : type.name,
                 name = varNameToken.name
             },
             initValue = initValue
@@ -565,6 +573,8 @@
     private static Token Consume(Type awaitingTokenType, string errorMessage, bool skipTerminators = false)
     {
         if (Check(awaitingTokenType, skipTerminators)) return Advance();
+
+        Token gotToken = Peek();
         throw new Exception(errorMessage);
     }
 

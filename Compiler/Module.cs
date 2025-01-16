@@ -53,6 +53,7 @@ public class PrimitiveTypeInfo : TypeInfo
     public static PrimitiveTypeInfo LONG;
 
     public static PrimitiveTypeInfo PTR;
+    public static PrimitiveTypeInfo ARRAY;
 
     public override string ToString()
     {
