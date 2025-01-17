@@ -118,15 +118,12 @@
 
     private static void AppendRawLLVMTypes(RawModule module)
     {
-        for (int i = 1; i <= 64; i *= 2)
-        {
-            RawPrimitiveTypeInfo type = new()
-            {
-                name = "i" + i,
-                asmName = "i" + i
-            };
-            module.typeInfoByName[type.name] = type;
-        }
+        CreateType(module, "bool", "i1");
+        CreateType(module, "byte", "i8");
+        CreateType(module, "short", "i16");
+        CreateType(module, "int", "i32");
+        CreateType(module, "long", "i64");
+
 
         RawPrimitiveTypeInfo ptrType = new()
         {
@@ -144,21 +141,11 @@
     }
     private static void AppendResolvedLLVMTypes(ResolvedModule module)
     {
-        for (int i = 1; i <= 64; i *= 2)
-        {
-            PrimitiveTypeInfo type = new PrimitiveTypeInfo()
-            {
-                name = "i" + i,
-                asmName = "i" + i
-            };
-            module.typeInfoByName[type.name] = type;
-        }
-
-        PrimitiveTypeInfo.BOOL = (PrimitiveTypeInfo)module.GetType("i1");
-        PrimitiveTypeInfo.BYTE = (PrimitiveTypeInfo)module.GetType("i8");
-        PrimitiveTypeInfo.SHORT = (PrimitiveTypeInfo)module.GetType("i16");
-        PrimitiveTypeInfo.INT = (PrimitiveTypeInfo)module.GetType("i32");
-        PrimitiveTypeInfo.LONG = (PrimitiveTypeInfo)module.GetType("i64");
+        PrimitiveTypeInfo.BOOL = CreateType(module, "bool", "i1");
+        PrimitiveTypeInfo.BYTE = CreateType(module, "byte", "i8");
+        PrimitiveTypeInfo.SHORT = CreateType(module, "short", "i16");
+        PrimitiveTypeInfo.INT = CreateType(module, "int", "i32");
+        PrimitiveTypeInfo.LONG = CreateType(module, "long", "i64");
 
         PrimitiveTypeInfo ptrType = new()
         {
@@ -177,5 +164,26 @@
         };
         module.typeInfoByName[arrayType.name] = arrayType;
         PrimitiveTypeInfo.ARRAY = arrayType;
+    }
+
+    private static PrimitiveTypeInfo CreateType(ResolvedModule module, string astraName, string llvmName)
+    {
+        PrimitiveTypeInfo type = new PrimitiveTypeInfo()
+        {
+            name = astraName,
+            asmName = llvmName
+        };
+        module.typeInfoByName[type.name] = type;
+        return type;
+    }
+    private static RawPrimitiveTypeInfo CreateType(RawModule module, string astraName, string llvmName)
+    {
+        RawPrimitiveTypeInfo type = new RawPrimitiveTypeInfo()
+        {
+            name = astraName,
+            asmName = llvmName
+        };
+        module.typeInfoByName[type.name] = type;
+        return type;
     }
 }

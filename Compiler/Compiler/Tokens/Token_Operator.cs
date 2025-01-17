@@ -1,6 +1,6 @@
 ﻿public abstract class Token_Operator : Token
 {
-    public virtual string ResultType => "i32";
+    public virtual string ResultType => "int";
 
     public string asmOperatorName;
 
@@ -11,7 +11,7 @@
 }
 public class Token_Equality : Token_Operator
 {
-    public override string ResultType => "i1";
+    public override string ResultType => "bool";
 
     public static bool TryMatch(string word, out Token_Equality op)
     {
@@ -35,7 +35,7 @@ public class Token_Equality : Token_Operator
 }
 public class Token_Comprassion : Token_Operator
 {
-    public override string ResultType => "i1";
+    public override string ResultType => "bool";
 
     public static bool TryMatch(string word, out Token_Comprassion op)
     {
