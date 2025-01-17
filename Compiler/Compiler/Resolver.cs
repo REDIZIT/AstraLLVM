@@ -2,21 +2,21 @@
 {
     public static ResolvedModule DiscoverModule(List<Node> ast)
     {
-        Access.Set(Stage.DisoverModule_Begin);
+        //Access.Set(Stage.DisoverModule_Begin);
 
 
 
         RawModule raw = new();
 
         AppendRawLLVMTypes(raw);
-        Access.Set(Stage.DisoverModule_Done_LLVMTypes);
+        //Access.Set(Stage.DisoverModule_Done_LLVMTypes);
 
 
         foreach (Node node in ast)
         {
             node.RegisterRefs(raw);
         }
-        Access.Set(Stage.DisoverModule_Done_RegisterRefs);
+        //Access.Set(Stage.DisoverModule_Done_RegisterRefs);
 
 
 
@@ -28,7 +28,7 @@
         {
             node.ResolveRefs(resolved);
         }
-        Access.Set(Stage.DisoverModule_Done_ResolveRefs);
+        //Access.Set(Stage.DisoverModule_Done_ResolveRefs);
 
 
 

@@ -156,20 +156,31 @@
         }
         else if (Peek() is Token_AddSub tokenAddSub && tokenAddSub.asmOperatorName == "sub")
         {
-            Token tokenBeforeSub = Previous();
-
-            if (tokenBeforeSub is Token_Assign)
+            // Handle unary '-' token
+            // @code_example - 3_ret_-1.ac
+            try
             {
-                Consume<Token_AddSub>();
-
-                return new Node_Unary()
+                return Call();
+            }
+            catch (UnexpectedTokenException err)
+            {
+                if (err.unexpectedToken == tokenAddSub)
                 {
-                    @operator = tokenAddSub,
-                    right = NotNeg()
-                };
+                    Consume<Token_AddSub>();
+
+                    return new Node_Unary()
+                    {
+                        @operator = tokenAddSub,
+                        right = NotNeg()
+                    };
+                }
+                else
+                {
+                    throw;
+                }
             }
         }
-
+        
         return Call();
     }
     private static Node Call()
@@ -508,7 +519,8 @@
             else if (anyTerminatorSkipped) return Declaration();
         }
 
-        throw new Exception($"Totally unexpected token '{Peek()}'");
+        //throw new Exception($"Totally unexpected token '{Peek()}'");
+        throw new UnexpectedTokenException(Peek());
     }
 
 
