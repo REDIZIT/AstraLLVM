@@ -33,7 +33,7 @@
     }
     public static Node FunctionsAndFieldsDeclaration()
     {
-        if (Match(typeof(Token_Identifier))) return VariableDeclaration();
+        if (Check<Token_Identifier>()) return Variable();
         if (Match(typeof(Token_Visibility))) return FunctionDeclaration();
 
         return Statement();
@@ -303,9 +303,20 @@
             throw new Exception("Expected type inside argument declaration");
         }
     }
+    private static Node Variable()
+    {
+        //var firstName = Consume<Token_Identifier>();
+
+        // SomeType myVar ...
+        //if (Check<Token_Identifier>() && ) return VariableDeclaration(firstName);
+        if (Next() is Token_Identifier) return VariableDeclaration();
+
+        // myVar ...
+        return Expression();
+    }
     private static Node VariableDeclaration()
     {
-        var type = Previous<Token_Identifier>();
+        var type = Consume<Token_Identifier>();
 
         bool isArray = false;
         if (Check(typeof(Token_SquareBracketOpen)))
@@ -314,6 +325,7 @@
             Consume<Token_SquareBracketOpen>();
             Consume<Token_SquareBracketClose>();
         }
+
         var varNameToken = Consume<Token_Identifier>("Expect variable name.");
 
         Node initValue = null;
@@ -543,6 +555,11 @@
         }
         return false;
     }
+
+    private static bool Check<T>(bool skipTerminators = false) where T : Token
+    {
+        return Check(typeof(T), skipTerminators);
+    }
     private static bool Check(Type tokenType, bool skipTerminators = false)
     {
         if (IsAtEnd()) return false;
@@ -577,6 +594,10 @@
     private static Token Previous()
     {
         return tokens[current - 1];
+    }
+    private static Token Next()
+    {
+        return tokens[current + 1];
     }
     private static T Consume<T>(string errorMessage = "Not mentioned error", bool skipTerminators = false) where T : Token
     {

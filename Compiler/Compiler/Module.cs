@@ -35,6 +35,38 @@ public class FunctionInfo
     public List<TypeInfo> arguments = new();
     public List<TypeInfo> returns = new();
 }
+public abstract class EmbeddedFunctionInfo : FunctionInfo
+{
+}
+public class ToPtr_EmbeddedFunctionInfo : EmbeddedFunctionInfo
+{
+    public string Generate(Generator.Context ctx, string valueName)
+    {
+        string ptr_name = ctx.NextPointerVariableName(PrimitiveTypeInfo.PTR);
+        ctx.b.AppendLine("; ptr_name = " + ptr_name + " for " + valueName);
+        ctx.b.AppendLine($"{ptr_name} = alloca i32*");
+        ctx.b.AppendLine($"store i32* %{valueName}, i32** {ptr_name}");
+        ctx.b.AppendLine();
+        return ptr_name;
+    }
+}
+public class PtrSet_EmbeddedFunctionInfo : EmbeddedFunctionInfo
+{
+    public string Generate(Generator.Context ctx, string pointerVariableName, string argumentVariableName)
+    {
+        ctx.b.AppendLine($"\n; Set {argumentVariableName} to {pointerVariableName}");
+
+        string argumentValueName = Utils.SureNotPointer(argumentVariableName, ctx);
+
+        string depointed = ctx.NextTempVariableName(PrimitiveTypeInfo.PTR);
+
+        ctx.b.AppendLine($"{depointed} = load i32*, i32* %{pointerVariableName}");
+        ctx.b.AppendLine($"store i32 {argumentValueName}, i32* {depointed}");
+        ctx.b.AppendLine();
+
+        return null;
+    }
+}
 public class FieldInfo
 {
     public string name;

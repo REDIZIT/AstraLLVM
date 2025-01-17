@@ -23,6 +23,7 @@
 
 
         ResolvedModule resolved = ResolveRawModule(raw);
+        RegisterEmbeddedFunctions(resolved);
 
         foreach (Node node in ast)
         {
@@ -112,9 +113,26 @@
             resolved.RegisterClass(classInfo);
 
         }
+
         return resolved;
     }
 
+    private static void RegisterEmbeddedFunctions(ResolvedModule module)
+    {
+        ToPtr_EmbeddedFunctionInfo to_ptr = new ToPtr_EmbeddedFunctionInfo()
+        {
+            name = "to_ptr",
+            returns = new List<TypeInfo>() { PrimitiveTypeInfo.PTR },
+        };
+        module.RegisterFunction(to_ptr);
+
+        PtrSet_EmbeddedFunctionInfo set = new PtrSet_EmbeddedFunctionInfo()
+        {
+            name = "set",
+            arguments = new List<TypeInfo>() { PrimitiveTypeInfo.INT }
+        };
+        module.RegisterFunction(set);
+    }
 
     private static void AppendRawLLVMTypes(RawModule module)
     {

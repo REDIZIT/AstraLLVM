@@ -56,6 +56,10 @@ public static class Generator
         }
         public TypeInfo GetPointedType(string pointerVariableName)
         {
+            if (pointedTypeByVariableName.ContainsKey(pointerVariableName) == false)
+            {
+                throw new Exception($"Failed to get type behind the pointer variable named '{pointerVariableName}'. This variable is not a pointer or not defined at all.");
+            }
             return pointedTypeByVariableName[pointerVariableName];
         }
     }

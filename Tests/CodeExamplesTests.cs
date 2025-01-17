@@ -1,7 +1,6 @@
 using System.Diagnostics;
 
 namespace Astra.Tests;
-
 public class CodeExamplesTests
 {
     [SetUp]
