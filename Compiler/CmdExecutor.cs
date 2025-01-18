@@ -4,14 +4,19 @@ public static class CmdExecutor
 {
     public static void CompileRunAndCheck(string folder, string llvmFileName, int expectedExitCode = int.MinValue)
     {
+        folder = Path.GetFullPath(folder);
+
         string exeName = Path.GetFileNameWithoutExtension(llvmFileName) + ".exe";
         string exePath = folder + "/" + exeName;
 
         if (File.Exists(exePath)) File.Delete(exePath);
 
+
         try
         {
-            Compile_LLVM_to_Exe(folder, llvmFileName, exeName).WaitForExit();
+            Process compileProcess = Compile_LLVM_to_Exe(folder, llvmFileName, exeName);
+            compileProcess.WaitForExit();
+            if (compileProcess.ExitCode != 0) throw new Exception($"Compilation to .exe failed with exit code: {compileProcess.ExitCode}");
 
             Process process = Run_Exe(folder, exeName);
             process.WaitForExit();
@@ -63,7 +68,7 @@ public static class CmdExecutor
 
         ProcessStartInfo info = new()
         {
-            FileName = "CMD.exe",
+            FileName = "cmd.exe",
             Arguments = strCmdText,
             RedirectStandardOutput = true,
             WorkingDirectory = folder,
@@ -72,7 +77,6 @@ public static class CmdExecutor
         Process process = Process.Start(info);
 
         //string strOutput = process.StandardOutput.ReadToEnd();
-        //process.WaitForExit();
 
         return process;
     }

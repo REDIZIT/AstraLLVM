@@ -64,21 +64,24 @@
         }
         string paramsStr = string.Join(", ", paramsDeclars);
 
-        
+
+        ctx.b.Space(3);
 
         if (returnValues.Count == 0)
         {
-            ctx.b.AppendLine($"define void @{name}({paramsStr})");
+            ctx.b.Line($"define void @{name}({paramsStr})");
         }
         else
         {
-            ctx.b.AppendLine($"define {returnValues[0].type} @{name}({paramsStr})");
+            ctx.b.Line($"define {returnValues[0].type} @{name}({paramsStr})");
         }
         
-        ctx.b.AppendLine("{");
+        ctx.b.Line("{");
 
         body.Generate(ctx);
 
-        ctx.b.AppendLine("}");
+        ctx.b.Line("}");
+
+        ctx.b.Space(1);
     }
 }

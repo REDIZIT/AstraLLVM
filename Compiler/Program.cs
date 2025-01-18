@@ -12,6 +12,6 @@
             //File.Copy("../../../output.ll", "\\\\wsl.localhost\\Ubuntu\\home\\redizit\\LLVM\\program.ll", true);
         }
 
-        CmdExecutor.CompileRunAndCheck("../../..", "output.ll", 42);
+        CmdExecutor.CompileRunAndCheck("../../..", "output.ll", 123);
     }
 }

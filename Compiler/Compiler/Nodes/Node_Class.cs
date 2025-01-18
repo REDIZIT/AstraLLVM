@@ -109,9 +109,9 @@ public class Node_New : Node
     }
     public void Generate(Generator.Context ctx, string generatedName)
     {
-        ctx.b.AppendLine($"{generatedName} = alloca %{classInfo.name}");
-        ctx.b.AppendLine($"call void @{classInfo.name}__ctor(ptr {generatedName})");
-        ctx.b.AppendLine();
+        ctx.b.Line($"{generatedName} = alloca %{classInfo.name}");
+        ctx.b.Line($"call void @{classInfo.name}__ctor(ptr {generatedName})");
+        ctx.b.Space();
         generatedVariableName = generatedName;
     }
 }

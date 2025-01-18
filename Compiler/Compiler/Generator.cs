@@ -1,10 +1,8 @@
-﻿using System.Text;
-
-public static class Generator
+﻿public static class Generator
 {
     public class Context
     {
-        public StringBuilder b = new();
+        public CodeStringBuilder b = new();
         public HashSet<string> stackVariables = new();
         public HashSet<string> tempVariables = new();
         public int tempVariablesCount = 0;
@@ -71,27 +69,27 @@ public static class Generator
             module = module
         };
 
-        ctx.b.AppendLine($";");
-        ctx.b.AppendLine($"; Structs");
-        ctx.b.AppendLine($";");
+        ctx.b.Line($";");
+        ctx.b.Line($"; Structs");
+        ctx.b.Line($";");
         foreach (ClassTypeInfo info in module.classInfoByName.Values)
         {
             string typesStr = string.Join(", ", info.fields.Select(f => f.type.ToString()));
-            ctx.b.AppendLine($"%{info.name} = type {{ {typesStr} }}");
+            ctx.b.Line($"%{info.name} = type {{ {typesStr} }}");
         }
 
-        ctx.b.AppendLine();
-        ctx.b.AppendLine();
-        ctx.b.AppendLine(";");
-        ctx.b.AppendLine("; Methods");
-        ctx.b.AppendLine(";");
+        ctx.b.Space(2);
+
+        ctx.b.Line(";");
+        ctx.b.Line("; Methods");
+        ctx.b.Line(";");
 
         foreach (Node statement in statements)
         {
             statement.Generate(ctx);
         }
 
-        return FormatLLVM(ctx.b.ToString());
+        return FormatLLVM(ctx.b.BuildString());
     }
 
 

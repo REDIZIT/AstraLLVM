@@ -25,36 +25,36 @@
         if (ctx.GetVariableType(valueConditionVariable) != PrimitiveTypeInfo.BOOL)
         {
             string castedConditionVariable = ctx.NextTempVariableName(PrimitiveTypeInfo.BOOL);
-            ctx.b.AppendLine($"{castedConditionVariable} = trunc {ctx.GetVariableType(valueConditionVariable)} {valueConditionVariable} to i1");
+            ctx.b.Line($"{castedConditionVariable} = trunc {ctx.GetVariableType(valueConditionVariable)} {valueConditionVariable} to i1");
             valueConditionVariable = castedConditionVariable;
         }
 
 
         if (elseBranch == null)
         {
-            ctx.b.AppendLine($"br i1 {valueConditionVariable}, label %if_true, label %if_end");
+            ctx.b.Line($"br i1 {valueConditionVariable}, label %if_true, label %if_end");
 
-            ctx.b.AppendLine("if_true:");
+            ctx.b.Line("if_true:");
             thenBranch.Generate(ctx);
-            ctx.b.AppendLine("br label %if_end");
+            ctx.b.Line("br label %if_end");
 
-            ctx.b.AppendLine("if_end:");
+            ctx.b.Line("if_end:");
         }
         else
         {
-            ctx.b.AppendLine($"br i1 {valueConditionVariable}, label %if_true, label %if_false");
+            ctx.b.Line($"br i1 {valueConditionVariable}, label %if_true, label %if_false");
 
-            ctx.b.AppendLine("if_true:");
+            ctx.b.Line("if_true:");
             thenBranch.Generate(ctx);
-            ctx.b.AppendLine("br label %if_end");
+            ctx.b.Line("br label %if_end");
 
-            ctx.b.AppendLine("if_false:");
+            ctx.b.Line("if_false:");
             elseBranch.Generate(ctx);
-            ctx.b.AppendLine("br label %if_end");
+            ctx.b.Line("br label %if_end");
 
-            ctx.b.AppendLine("if_end:");
+            ctx.b.Line("if_end:");
         }
 
-        ctx.b.AppendLine();
+        ctx.b.Space();
     }
 }

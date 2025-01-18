@@ -14,7 +14,7 @@
     {
         base.Generate(ctx);
 
-        ctx.b.AppendLine();
+        ctx.b.Space();
 
         if (expr != null)
         {
@@ -22,11 +22,11 @@
 
             string retVarName = Utils.SureNotPointer(expr.generatedVariableName, ctx);
 
-            ctx.b.AppendLine($"ret {ctx.GetVariableType(retVarName)} {retVarName}");
+            ctx.b.Line($"ret {ctx.GetVariableType(retVarName)} {retVarName}");
         }
         else
         {
-            ctx.b.AppendLine("ret void");
+            ctx.b.Line("ret void");
         }
     }
 }

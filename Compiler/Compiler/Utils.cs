@@ -15,19 +15,21 @@
             throw new Exception($"Can not move values with different types. Source '{type_source}', dest '{type_dest}'");
         }
 
+        ctx.b.Space();
 
         if (isPtr_source == false && isPtr_dest)
         {
             // src = type
             // dst = ptr
-            ctx.b.AppendLine($"store {type_source} {sourceVarName}, ptr {destVarName}");
+            ctx.b.CommentLine($"ptr {destVarName} = val {sourceVarName}");
+            ctx.b.Line($"store {type_source} {sourceVarName}, ptr {destVarName}");
         }
         else if (isPtr_source && isPtr_dest == false)
         {
             // src = ptr
             // dst = type
-            ctx.b.AppendLine($"\n; ptr {destVarName} = val {sourceVarName}");
-            ctx.b.AppendLine($"store {type_source} {sourceVarName}, ptr {destVarName}");
+            ctx.b.CommentLine($"val {destVarName} = ptr {sourceVarName}");
+            ctx.b.Line($"store {type_source} {sourceVarName}, ptr {destVarName}");
         }
         else if (isPtr_source && isPtr_dest)
         {
@@ -35,9 +37,10 @@
             // dst = ptr
             string tempName = ctx.NextTempVariableName(type_source);
             TypeInfo valueType = ctx.GetPointedType(sourceVarName);
-            ctx.b.AppendLine($"\n; ptr {destVarName} = ptr {sourceVarName}");
-            ctx.b.AppendLine($"{tempName} = load {valueType}, ptr {sourceVarName}");
-            ctx.b.AppendLine($"store {valueType} {tempName}, ptr {destVarName}");
+
+            ctx.b.CommentLine($"ptr {destVarName} = ptr {sourceVarName}");
+            ctx.b.Line($"{tempName} = load {valueType}, ptr {sourceVarName}");
+            ctx.b.Line($"store {valueType} {tempName}, ptr {destVarName}");
         }
         else
         {
@@ -46,6 +49,8 @@
 
             throw new Exception("Failed to move value between 2 value-types (both are not pointer). This feature is not supported by LLVM IR");
         }
+
+        ctx.b.Space();
     }
 
     public static string SureNotPointer(string varName, Generator.Context ctx)
@@ -54,7 +59,7 @@
 
         TypeInfo type = ctx.GetPointedType(varName);
         string tempName = ctx.NextTempVariableName(type);
-        ctx.b.AppendLine($"{tempName} = load {type}, ptr {varName}");
+        ctx.b.Line($"{tempName} = load {type}, ptr {varName}");
         return tempName;
     }
 }

@@ -61,12 +61,12 @@
                 TypeInfo returnValueType = function.returns[0];
 
                 string tempName = ctx.NextTempVariableName(returnValueType);
-                ctx.b.AppendLine($"{tempName} = call {returnValueType} @{functionName}({paramsStr})");
+                ctx.b.Line($"{tempName} = call {returnValueType} @{functionName}({paramsStr})");
                 generatedVariableName = tempName;
             }
             else
             {
-                ctx.b.AppendLine($"call void @{functionName}({paramsStr})");
+                ctx.b.Line($"call void @{functionName}({paramsStr})");
             }
         }
     }

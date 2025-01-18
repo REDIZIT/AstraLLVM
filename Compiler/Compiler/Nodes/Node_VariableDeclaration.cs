@@ -37,7 +37,7 @@
             Generate_WithInit_AnyExpression(ctx);
         }
 
-        ctx.b.AppendLine();
+        ctx.b.Space();
     }
 
     private void Generate_WithDefaultValue(Generator.Context ctx)
@@ -48,27 +48,27 @@
             return;
         }
 
-        ctx.b.AppendLine($"{generatedVariableName} = alloca {variable.type}");
+        ctx.b.Line($"{generatedVariableName} = alloca {variable.type}");
 
         if (variable.type is PrimitiveTypeInfo)
         {
-            ctx.b.AppendLine($"store {variable.type} 0, i32* {generatedVariableName}");
+            ctx.b.Line($"store {variable.type} 0, i32* {generatedVariableName}");
         }
         else
         {
-            ctx.b.AppendLine("; todo: allocate struct (or class) with default value.");
+            ctx.b.Line("; todo: allocate struct (or class) with default value.");
         }
     }
     private void Generate_WithInit_Literal(Generator.Context ctx, Node_Literal literal)
     {
-        ctx.b.AppendLine($"{generatedVariableName} = alloca {variable.type}");
-        ctx.b.AppendLine($"store {variable.type} {literal.constant.value}, i32* {generatedVariableName}");
+        ctx.b.Line($"{generatedVariableName} = alloca {variable.type}");
+        ctx.b.Line($"store {variable.type} {literal.constant.value}, i32* {generatedVariableName}");
     }
     private void Generate_WithInit_AnyExpression(Generator.Context ctx)
     {
         initValue.Generate(ctx);
 
-        ctx.b.AppendLine($"{generatedVariableName} = alloca {variable.type}");
+        ctx.b.Line($"{generatedVariableName} = alloca {variable.type}");
         Utils.MoveValue(initValue.generatedVariableName, generatedVariableName, ctx);
     }
     private void Generate_WithInit_New(Generator.Context ctx, Node_New tokenNew)
@@ -79,7 +79,7 @@
 
     private void Generate_Array_WithDefaultValue(Generator.Context ctx)
     {
-        ctx.b.AppendLine($"{generatedVariableName} = alloca [10 x i32]");
+        ctx.b.Line($"{generatedVariableName} = alloca [10 x i32]");
     }
 }
 

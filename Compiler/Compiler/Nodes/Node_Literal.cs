@@ -15,8 +15,8 @@
         PrimitiveTypeInfo literalType = PrimitiveTypeInfo.INT;
 
         generatedVariableName = ctx.NextPointerVariableName(literalType);
-        ctx.b.AppendLine($"{generatedVariableName} = alloca {literalType.asmName}");
-        ctx.b.AppendLine($"store {literalType.asmName} {constant.value}, {PrimitiveTypeInfo.PTR} {generatedVariableName}");
-        ctx.b.AppendLine();
+        ctx.b.Line($"{generatedVariableName} = alloca {literalType.asmName}");
+        ctx.b.Line($"store {literalType.asmName} {constant.value}, {PrimitiveTypeInfo.PTR} {generatedVariableName}");
+        ctx.b.Space();
     }
 }

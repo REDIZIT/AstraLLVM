@@ -26,9 +26,9 @@
         TypeInfo resultType = ctx.module.GetType(@operator.ResultType);
 
         generatedVariableName = ctx.NextTempVariableName(resultType);
-        ctx.b.AppendLine($"{generatedVariableName} = {@operator.asmOperatorName} i32 {leftName}, {rightName}");
+        ctx.b.Line($"{generatedVariableName} = {@operator.asmOperatorName} i32 {leftName}, {rightName}");
 
-        ctx.b.AppendLine();
+        ctx.b.Space();
     }
 }
 
@@ -59,7 +59,7 @@ public class Node_Unary : Node
         {
             TypeInfo rightType = ctx.GetVariableType(rightName);
             string tempName = ctx.NextTempVariableName(PrimitiveTypeInfo.BOOL);
-            ctx.b.AppendLine($"{tempName} = icmp sle {rightType} {rightName}, 0");
+            ctx.b.Line($"{tempName} = icmp sle {rightType} {rightName}, 0");
 
             generatedVariableName = tempName;
         }
@@ -67,11 +67,11 @@ public class Node_Unary : Node
         {
             TypeInfo rightType = ctx.GetVariableType(rightName);
             string tempName = ctx.NextTempVariableName(rightType);
-            ctx.b.AppendLine($"{tempName} = sub {rightType} 0, {rightName}");
+            ctx.b.Line($"{tempName} = sub {rightType} 0, {rightName}");
 
             generatedVariableName = tempName;
         }
 
-        ctx.b.AppendLine();
+        ctx.b.Space();
     }
 }

@@ -28,8 +28,8 @@
         fieldInfo = targetType.fields[indexOfField];
 
         string ptr = ctx.NextPointerVariableName(fieldInfo.type);
-        ctx.b.AppendLine($"{ptr} = getelementptr {targetType}, ptr {target.generatedVariableName}, i32 0, i32 {indexOfField}");
-        ctx.b.AppendLine();
+        ctx.b.Line($"{ptr} = getelementptr {targetType}, ptr {target.generatedVariableName}, i32 0, i32 {indexOfField}");
+        ctx.b.Space();
 
         generatedVariableName = ptr;
     }

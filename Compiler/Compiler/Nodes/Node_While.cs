@@ -17,17 +17,17 @@
     {
         base.Generate(ctx);
 
-        ctx.b.AppendLine("br label %while_condition");
-        ctx.b.AppendLine("while_condition:");
+        ctx.b.Line("br label %while_condition");
+        ctx.b.Line("while_condition:");
         condition.Generate(ctx);
 
         string conditionName = Utils.SureNotPointer(condition.generatedVariableName, ctx);
-        ctx.b.AppendLine($"br i1 {conditionName}, label %while_body, label %while_end");
+        ctx.b.Line($"br i1 {conditionName}, label %while_body, label %while_end");
 
-        ctx.b.AppendLine("while_body:");
+        ctx.b.Line("while_body:");
         body.Generate(ctx);
-        ctx.b.AppendLine("br label %while_condition");
+        ctx.b.Line("br label %while_condition");
 
-        ctx.b.AppendLine("while_end:");
+        ctx.b.Line("while_end:");
     }
 }
