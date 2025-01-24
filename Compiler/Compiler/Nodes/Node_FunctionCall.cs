@@ -23,15 +23,21 @@
             if (embeddedFunctionInfo is ToPtr_EmbeddedFunctionInfo toPtr)
             {
                 Node_VariableUse variable = (Node_VariableUse)((Node_FieldAccess)caller).target;
-                string variableName = variable.variableName;
-                generatedVariableName = toPtr.Generate(ctx, variableName);
+                string valueVariableName = variable.variableName;
+                generatedVariableName = toPtr.Generate(ctx, valueVariableName);
             }
             else if (embeddedFunctionInfo is PtrSet_EmbeddedFunctionInfo ptrSet)
             {
                 Node_VariableUse variable = (Node_VariableUse)((Node_FieldAccess)caller).target;
-                string variableName = variable.variableName;
+                string pointerVariableName = variable.variableName;
                 arguments[0].Generate(ctx);
-                generatedVariableName = ptrSet.Generate(ctx, variableName, arguments[0].generatedVariableName);
+                generatedVariableName = ptrSet.Generate(ctx, pointerVariableName, arguments[0].generatedVariableName);
+            }
+            else if (embeddedFunctionInfo is PtrGet_EmbeddedFunctionInfo ptrGet)
+            {
+                Node_VariableUse variable = (Node_VariableUse)((Node_FieldAccess)caller).target;
+                string pointerVariableName = variable.variableName;
+                generatedVariableName = ptrGet.Generate(ctx, pointerVariableName);
             }
             else
             {

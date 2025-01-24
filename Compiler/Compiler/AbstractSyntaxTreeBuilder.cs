@@ -309,7 +309,7 @@
 
         // SomeType myVar ...
         //if (Check<Token_Identifier>() && ) return VariableDeclaration(firstName);
-        if (Next() is Token_Identifier) return VariableDeclaration();
+        if (Next() is Token_Identifier || Next() is Token_SquareBracketOpen) return VariableDeclaration();
 
         // myVar ...
         return Expression();

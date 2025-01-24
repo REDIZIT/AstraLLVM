@@ -119,19 +119,26 @@
 
     private static void RegisterEmbeddedFunctions(ResolvedModule module)
     {
-        ToPtr_EmbeddedFunctionInfo to_ptr = new ToPtr_EmbeddedFunctionInfo()
+        ToPtr_EmbeddedFunctionInfo to_ptr = new()
         {
             name = "to_ptr",
             returns = new List<TypeInfo>() { PrimitiveTypeInfo.PTR },
         };
         module.RegisterFunction(to_ptr);
 
-        PtrSet_EmbeddedFunctionInfo set = new PtrSet_EmbeddedFunctionInfo()
+        PtrSet_EmbeddedFunctionInfo set = new()
         {
             name = "set",
             arguments = new List<TypeInfo>() { PrimitiveTypeInfo.INT }
         };
         module.RegisterFunction(set);
+
+        PtrGet_EmbeddedFunctionInfo get = new()
+        {
+            name = "get",
+            returns = new List<TypeInfo>() { PrimitiveTypeInfo.INT },
+        };
+        module.RegisterFunction(get);
     }
 
     private static void AppendRawLLVMTypes(RawModule module)

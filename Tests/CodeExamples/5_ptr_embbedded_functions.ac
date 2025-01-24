@@ -8,7 +8,9 @@ class program
 
 		pointer.set(123)
 
-		return a
+		int b = pointer.get()
+
+		return b
 	}
 }
 
