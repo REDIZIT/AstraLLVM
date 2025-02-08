@@ -27,6 +27,10 @@ public static class CmdExecutor
             {
                 if (exitCode != expectedExitCode)
                 {
+                    if (exitCode == -1073741819)
+                    {
+                        throw new Exception($"Unexpected .exe exit code. Expected {expectedExitCode}, got Segmentation Fault");
+                    }
                     throw new Exception($"Unexpected .exe exit code. Expected {expectedExitCode}, got {exitCode}");
                 }
                 else

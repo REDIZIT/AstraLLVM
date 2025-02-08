@@ -39,6 +39,13 @@
                 string pointerVariableName = variable.variableName;
                 generatedVariableName = ptrGet.Generate(ctx, pointerVariableName);
             }
+            else if (embeddedFunctionInfo is PtrShift_EmbeddedFunctionInfo ptrShift)
+            {
+                Node_VariableUse variable = (Node_VariableUse)((Node_FieldAccess)caller).target;
+                string pointerVariableName = variable.variableName;
+                arguments[0].Generate(ctx);
+                generatedVariableName = ptrShift.Generate(ctx, pointerVariableName, arguments[0].generatedVariableName);
+            }
             else
             {
                 throw new Exception($"Unknown EmbeddedFunctionInfo '{embeddedFunctionInfo}'");

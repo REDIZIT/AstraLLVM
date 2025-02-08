@@ -1,0 +1,2 @@
+lli program.ll
+echo $?

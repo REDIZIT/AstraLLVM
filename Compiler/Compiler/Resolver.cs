@@ -139,6 +139,13 @@
             returns = new List<TypeInfo>() { PrimitiveTypeInfo.INT },
         };
         module.RegisterFunction(get);
+
+        PtrShift_EmbeddedFunctionInfo shift = new()
+        {
+            name = "shift",
+            arguments = new List<TypeInfo>() { PrimitiveTypeInfo.INT },
+        };
+        module.RegisterFunction(shift);
     }
 
     private static void AppendRawLLVMTypes(RawModule module)
