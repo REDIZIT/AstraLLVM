@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AstraB", "AstraB\AstraB.csproj", "{D5EE13D5-6880-4539-B563-03ED1ED935B1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AstraLLVM", "..\Compiler\AstraLLVM.csproj", "{E057BA73-53DD-4331-9B49-D27958D250CA}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D5EE13D5-6880-4539-B563-03ED1ED935B1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D5EE13D5-6880-4539-B563-03ED1ED935B1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D5EE13D5-6880-4539-B563-03ED1ED935B1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D5EE13D5-6880-4539-B563-03ED1ED935B1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E057BA73-53DD-4331-9B49-D27958D250CA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E057BA73-53DD-4331-9B49-D27958D250CA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E057BA73-53DD-4331-9B49-D27958D250CA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E057BA73-53DD-4331-9B49-D27958D250CA}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

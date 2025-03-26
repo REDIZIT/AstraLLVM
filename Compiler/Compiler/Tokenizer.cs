@@ -150,6 +150,8 @@
 
     private static void TerminateLine(List<Token> tokens)
     {
+        if (tokens.Count == 0) return;
+        
         if (tokens.Last() is Token_Terminator == false)
         {
             tokens.Add(new Token_Terminator());
