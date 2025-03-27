@@ -39,3 +39,13 @@ public class Node_Print : Node
 {
     
 }
+
+public class Node_FunctionCall : Node
+{
+    public Node functionNode;
+}
+
+public class Node_Identifier : Node
+{
+    public string name;
+}

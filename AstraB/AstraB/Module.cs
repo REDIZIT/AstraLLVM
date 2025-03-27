@@ -11,11 +11,19 @@
     public void Register(TypeInfo type)
     {
         typeByName.Add(type.name, type);
+
+        type.module = this;
+        type.inModuleIndex = types.Count;
+        
         types.Add(type);
     }
     public void Register(FunctionInfo function)
     {
         functionByName.Add(function.name, function);
+
+        function.module = this;
+        function.inModuleIndex = functions.Count;
+        
         functions.Add(function);
     }
 
@@ -61,6 +69,9 @@ public class TypeInfo
     public string name;
     public List<FieldInfo> fields;
     public Node_TypeDeclaration node;
+    
+    public Module module;
+    public int inModuleIndex;
 
     public TypeInfo()
     {
@@ -76,6 +87,18 @@ public class FunctionInfo
 {
     public string name;
     public Node_FunctionDeclaration node;
+    
+    public Module module;
+    public int inModuleIndex;
+    
+    public FunctionInfo()
+    {
+    }
+
+    public FunctionInfo(string name)
+    {
+        this.name = name;
+    }
 }
 
 public class FieldInfo

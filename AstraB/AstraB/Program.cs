@@ -2,14 +2,16 @@
 {
     public static void Main()
     {
-        string exampleCode = @"
+        string exampleCode = """
+
 MyType { int a; long b }
 
 MyFunction()
 {
-    print
+    print()
 }
-";
+
+""";
         
         var tokens = Tokenizer.Tokenize(exampleCode);
 

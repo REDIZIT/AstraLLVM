@@ -37,7 +37,9 @@
             }
         }
         
+        //
         // Pass 3: Register functions
+        //
         foreach (Node_FunctionDeclaration functionNode in root.children.Where(n => n is Node_FunctionDeclaration))
         {
             FunctionInfo functionInfo = new FunctionInfo()
@@ -57,6 +59,8 @@
 
         module.Register(new TypeInfo("int"));
         module.Register(new TypeInfo("long"));
+        
+        module.Register(new FunctionInfo("print"));
 
         return module;
     }

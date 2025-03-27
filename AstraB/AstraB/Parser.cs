@@ -74,13 +74,43 @@
 
     private static Node InFunctionDeclaration()
     {
-        if (Check<Token_Identifier>() && (Peek() as Token_Identifier).name == "print")
+        return FunctionCall();
+    }
+
+    private static Node FunctionCall()
+    {
+        Node left = Identifier();
+
+        if (Check<Token_BracketOpen>())
         {
-            Consume<Token_Identifier>();
-            return new Node_Print();
+            Consume<Token_BracketOpen>();
+            Consume<Token_BracketClose>();
+
+            return new Node_FunctionCall()
+            {
+                functionNode = left
+            };
         }
-        
-        throw new Exception($"Failed to parse {nameof(InFunctionDeclaration)} due to unexpected tokens sequence '{Peek()}' at {current}");
+
+        return left;
+    }
+
+    private static Node Identifier()
+    {
+        if (Check<Token_Identifier>())
+        {
+            return new Node_Identifier()
+            {
+                name = Consume<Token_Identifier>().name
+            };
+        }
+
+        return Unexpected();
+    }
+
+    private static Node Unexpected()
+    {
+        throw new Exception($"Failed to parse tokens due to unexpected token '{Peek()}' at {current}");
     }
 
     private static Node_FieldDeclaration FieldDeclaration()
