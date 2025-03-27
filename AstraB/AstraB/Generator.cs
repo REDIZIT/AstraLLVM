@@ -6,6 +6,8 @@
     private static Stack<StaticVariable> staticVariables = new();
     private static Dictionary<string, StaticVariable> staticVariableByName = new();
     private static int staticRbpOffset;
+
+    private static int tempNameIndex;
     
     public static CompiledModule Generate(Module module)
     {
@@ -28,12 +30,61 @@
 
     private static void Generate(Node node)
     {
-        if (node is Node_FunctionDeclaration functionDeclaration) FunctionDeclaration(functionDeclaration);
-        else if (node is Node_Print print) Print(print);
-        else if (node is Node_FunctionCall call) FunctionCall(call);
-        else if (node is Node_VariableDeclaration variableDeclaration) VariableDeclaration(variableDeclaration);
-        else if (node is Node_VariableAssign variableAssignment) VariableAssignment(variableAssignment);
-        else throw new Exception($"Failed to generate due to unexpected node '{node}'");
+        switch (node)
+        {
+            case Node_FunctionDeclaration functionDeclaration:
+                FunctionDeclaration(functionDeclaration);
+                break;
+            case Node_Print print:
+                Print(print);
+                break;
+            case Node_FunctionCall call:
+                FunctionCall(call);
+                break;
+            case Node_VariableDeclaration variableDeclaration:
+                VariableDeclaration(variableDeclaration);
+                break;
+            case Node_VariableAssign variableAssignment:
+                VariableAssignment(variableAssignment);
+                break;
+            case Node_Binary binary:
+                Binary(binary);
+                break;
+            case Node_ConstantNumber constantNumber:
+                Constant(constantNumber);
+                break;
+            case Node_Identifier ident:
+                LoadVariable(ident);
+                break;
+            default:
+                throw new Exception($"Failed to generate due to unexpected node '{node}'");
+        }
+    }
+
+    private static void LoadVariable(Node_Identifier ident)
+    {
+        ident.result = staticVariableByName[ident.name];
+    }
+
+    private static void Constant(Node_ConstantNumber constant)
+    {
+        constant.result = AllocateVariable(constant.typeName, NextTempName());
+        SetValue_Var_Const(constant.result, constant.value);
+    }
+
+    private static void Binary(Node_Binary node)
+    {
+        Generate(node.left);
+        Generate(node.right);
+        
+        TypeInfo resultType = module.GetType(node.tokenOperator.ResultType);
+        node.result = AllocateVariable(resultType.name, NextTempName());
+        
+        Add(OpCode.Math);
+        Add((int)0);
+        Add(node.result.rbpOffset);
+        Add(node.left.result.rbpOffset);
+        Add(node.right.result.rbpOffset);
     }
 
     private static void FunctionDeclaration(Node_FunctionDeclaration node)
@@ -51,14 +102,19 @@
 
     private static void VariableDeclaration(Node_VariableDeclaration node)
     {
+        node.result = AllocateVariable(node.typeName, node.variableName);
+    }
+
+    private static StaticVariable AllocateVariable(string typeName, string variableName)
+    {
         Add(OpCode.Allocate_Variable);
 
-        TypeInfo type = module.GetType(node.typeName);
+        TypeInfo type = module.GetType(typeName);
         Add(type.sizeInBytes);
 
         StaticVariable variable = new StaticVariable()
         {
-            name = node.variableName,
+            name = variableName,
             rbpOffset = staticRbpOffset,
             sizeInBytes = type.sizeInBytes
         };
@@ -67,24 +123,56 @@
         
         staticVariables.Push(variable);
         staticVariableByName.Add(variable.name, variable);
+
+        return variable;
     }
 
     private static void VariableAssignment(Node_VariableAssign node)
     {
-        Add(OpCode.Variable_SetValue);
-
         if (node.left is Node_Identifier ident)
         {
             StaticVariable variable = staticVariableByName[ident.name];
+
+            Generate(node.value);
             
-            if (node.value is Node_ConstantNumber constant)
-            {
-                Add((int)1);
-                Add(variable.sizeInBytes);
-                Add(variable.rbpOffset);
-                AddRange(constant.value, variable.sizeInBytes);
-            }
+            SetValue_Var_Var(variable, node.value.result);
+            
+            // if (node.value is Node_ConstantNumber constant)
+            // {
+            //     SetValue_Var_Const(variable, constant.value);
+            // }
+            // else if (node.value is Node_Identifier valueVariableIdent)
+            // {
+            //     StaticVariable valueVariable = staticVariableByName[valueVariableIdent.name];
+            //     SetValue_Var_Var(variable, valueVariable);
+            // }
+            // else if (node.value is Node_Binary binary)
+            // {
+            //     Binary();
+            // }
+            // else
+            // {
+            //     throw new Exception($"Unknown value node type {node} inside {nameof(VariableAssignment)}");
+            // }
         }
+    }
+
+    private static void SetValue_Var_Var(StaticVariable dest, StaticVariable value)
+    {
+        Add(OpCode.Variable_SetValue);
+        Add((int)0);
+        Add(dest.sizeInBytes);
+        Add(dest.rbpOffset);
+        Add(value.rbpOffset);
+    }
+
+    private static void SetValue_Var_Const(StaticVariable dest, byte[] value)
+    {
+        Add(OpCode.Variable_SetValue);
+        Add((int)1);
+        Add(dest.sizeInBytes);
+        Add(dest.rbpOffset);
+        AddRange(value, dest.sizeInBytes);
     }
 
     private static void Print(Node_Print node)
@@ -113,6 +201,12 @@
         {
             throw new Exception($"Failed to generate {nameof(Node_FunctionCall)} due to unknown functionNode ({node.functionNode})");
         }
+    }
+
+    private static string NextTempName()
+    {
+        tempNameIndex++;
+        return "temp_" + tempNameIndex;
     }
 
     private static void Add(OpCode code)
@@ -158,7 +252,7 @@ public enum OpCode : byte
     ExternalCall,
     Allocate_Variable,
     Variable_SetValue,
-    Variable_GetValue
+    Math
 }
 
 public class StaticVariable

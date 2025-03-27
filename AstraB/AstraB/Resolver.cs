@@ -67,6 +67,8 @@
     {
         Module module = new();
 
+        module.Register(new TypeInfo("byte") { isPrimitive = true, sizeInBytes = 1 });
+        module.Register(new TypeInfo("short") { isPrimitive = true, sizeInBytes = 2 });
         module.Register(new TypeInfo("int") { isPrimitive = true, sizeInBytes = 4 });
         module.Register(new TypeInfo("long") { isPrimitive = true, sizeInBytes = 8 });
         

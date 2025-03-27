@@ -48,8 +48,21 @@
             case OpCode.ExternalCall: ExternalCall(); break;
             case OpCode.Allocate_Variable: AllocateVariable(); break;
             case OpCode.Variable_SetValue: VariableSetValue(); break;
+            case OpCode.Math: Math(); break;
             default: throw new NotImplementedException($"There is no implementation for {opCode} opcode");
         }
+    }
+
+    private void Math()
+    {
+        int mode = NextInt();
+        int resultAddress = NextAddress();
+        int aAddress = NextAddress();
+        int bAddress = NextAddress();
+
+        int aValue = ReadInt(heap, aAddress);
+        int bValue = ReadInt(heap, bAddress);
+        WriteInt(heap, resultAddress, aValue + bValue);
     }
 
     private void VariableSetValue()
@@ -128,6 +141,16 @@
         {
             arr[address + i] = value[i];
         }
+    }
+
+    private void WriteInt(byte[] arr, int address, int value)
+    {
+        Write(arr, address, BitConverter.GetBytes(value));
+    }
+
+    private int ReadInt(byte[] arr, int address)
+    {
+        return BitConverter.ToInt32(arr, address);
     }
 
     private void Copy(byte[] source, byte[] destination, int sourceAddress, int destinationAddress, int sizeInBytes)

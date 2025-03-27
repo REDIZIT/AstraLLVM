@@ -10,11 +10,11 @@ MyFunction()
 {
     int a
     int b
-    long c
+    int c
     
     a = 42
     b = 777
-    c = 1827455253
+    c = a + 1
     
     print()
 }

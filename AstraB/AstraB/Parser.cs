@@ -111,17 +111,36 @@
 
     private static Node VariableAssignment()
     {
-        Node left = ConstantNumber();
+        Node left = Math();
         
         if (Check<Token_Assign>())
         {
             Consume<Token_Assign>();
-            Node right = ConstantNumber();
+            Node right = Math();
 
             return new Node_VariableAssign()
             {
                 left = left,
                 value = right
+            };
+        }
+
+        return left;
+    }
+
+    private static Node Math()
+    {
+        Node left = ConstantNumber();
+
+        if (Check<Token_AddSub>())
+        {
+            Token_Operator tokenOperator = Consume<Token_AddSub>();
+
+            return new Node_Binary()
+            {
+                left = left,
+                right = ConstantNumber(),
+                tokenOperator = tokenOperator
             };
         }
 
