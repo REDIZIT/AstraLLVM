@@ -79,7 +79,7 @@
 
     private static Node FunctionCall()
     {
-        Node left = Identifier();
+        Node left = VariableDeclaration();
 
         if (Check<Token_BracketOpen>())
         {
@@ -93,6 +93,20 @@
         }
 
         return left;
+    }
+
+    private static Node VariableDeclaration()
+    {
+        if (Check<Token_Identifier>() && Check<Token_Identifier>(offset: 1))
+        {
+            return new Node_VariableDeclaration()
+            {
+                typeName = Consume<Token_Identifier>().name,
+                variableName = Consume<Token_Identifier>().name
+            };
+        }
+
+        return Identifier();
     }
 
     private static Node Identifier()

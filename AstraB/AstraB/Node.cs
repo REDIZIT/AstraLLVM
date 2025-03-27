@@ -32,7 +32,8 @@ public class Node_FieldDeclaration : Node
 
 public class Node_VariableDeclaration : Node
 {
-    
+    public string typeName;
+    public string variableName;
 }
 
 public class Node_Print : Node

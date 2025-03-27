@@ -25,6 +25,7 @@
         if (node is Node_FunctionDeclaration functionDeclaration) FunctionDeclaration(functionDeclaration);
         else if (node is Node_Print print) Print(print);
         else if (node is Node_FunctionCall call) FunctionCall(call);
+        else if (node is Node_VariableDeclaration variableDeclaration) VariableDeclaration(variableDeclaration);
         else throw new Exception($"Failed to generate due to unexpected node '{node}'");
     }
 
@@ -39,6 +40,14 @@
         {
             Generate(children);
         }
+    }
+
+    private static void VariableDeclaration(Node_VariableDeclaration node)
+    {
+        Add(OpCode.Allocate_Variable);
+
+        TypeInfo type = module.GetType(node.typeName);
+        Add(type.sizeInBytes);
     }
 
     private static void Print(Node_Print node)
@@ -101,4 +110,5 @@ public enum OpCode : byte
     Print,
     InternalCall,
     ExternalCall,
+    Allocate_Variable
 }

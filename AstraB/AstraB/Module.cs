@@ -69,6 +69,9 @@ public class TypeInfo
     public string name;
     public List<FieldInfo> fields;
     public Node_TypeDeclaration node;
+
+    public bool isPrimitive;
+    public int sizeInBytes;
     
     public Module module;
     public int inModuleIndex;

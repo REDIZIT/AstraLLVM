@@ -3,11 +3,21 @@
     private CompiledModule module;
 
     private int current;
+
+    private byte[] stack, heap;
+    private int stackPointer, basePointer;
+    private int heapPointer;
     
     public void Run(CompiledModule module)
     {
         this.module = module;
         current = module.functionPointerByID[0];
+
+        stack = new byte[1024];
+        heap = new byte[1024];
+        stackPointer = 0;
+        basePointer = 0;
+        
 
         int opsDone = 0;
         int opsLimit = 1000;
@@ -36,10 +46,22 @@
             case OpCode.Print: Console.WriteLine("Printed!"); break;
             case OpCode.InternalCall: InternalCall(); break;
             case OpCode.ExternalCall: ExternalCall(); break;
+            case OpCode.Allocate_Variable: AllocateVariable(); break;
             default: throw new NotImplementedException($"There is no implementation for {opCode} opcode");
         }
     }
 
+    private void AllocateVariable()
+    {
+        int sizeInBytes = NextInt();
+
+        int heapAddress = heapPointer;
+        heapPointer += sizeInBytes;
+
+        Write(stack, stackPointer, BitConverter.GetBytes(heapAddress));
+        stackPointer += sizeInBytes;
+    }
+    
     private void InternalCall()
     {
         int inModuleIndex = NextInt();
@@ -72,5 +94,13 @@
         byte[] bytes = module.code.Slice(current, count).ToArray();
         current += count;
         return bytes;
+    }
+
+    private void Write(byte[] arr, int address, byte[] value)
+    {
+        for (int i = 0; i < value.Length; i++)
+        {
+            arr[address + i] = value[i];
+        }
     }
 }

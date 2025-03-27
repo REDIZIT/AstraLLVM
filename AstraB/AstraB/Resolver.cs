@@ -7,6 +7,8 @@
         Module vmModule = CreateVMDependModule();
         module.usings.Add(vmModule);
 
+        int pointerSizeInBytes = 4;
+
         //
         // Pass 1: Register types
         //
@@ -38,7 +40,15 @@
         }
         
         //
-        // Pass 3: Register functions
+        // Pass 3: Calculate sizeInBytes
+        //
+        foreach (TypeInfo type in module.types)
+        {
+            type.sizeInBytes = type.fields.Sum(f => f.type.isPrimitive ? f.type.sizeInBytes : pointerSizeInBytes);
+        }
+        
+        //
+        // Pass 4: Register functions
         //
         foreach (Node_FunctionDeclaration functionNode in root.children.Where(n => n is Node_FunctionDeclaration))
         {
@@ -57,8 +67,8 @@
     {
         Module module = new();
 
-        module.Register(new TypeInfo("int"));
-        module.Register(new TypeInfo("long"));
+        module.Register(new TypeInfo("int") { isPrimitive = true, sizeInBytes = 4 });
+        module.Register(new TypeInfo("long") { isPrimitive = true, sizeInBytes = 8 });
         
         module.Register(new FunctionInfo("print"));
 

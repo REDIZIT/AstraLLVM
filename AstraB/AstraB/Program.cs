@@ -8,6 +8,9 @@ MyType { int a; long b }
 
 MyFunction()
 {
+    int a
+    int b
+    long c
     print()
 }
 
