@@ -106,6 +106,36 @@
             };
         }
 
+        return VariableAssignment();
+    }
+
+    private static Node VariableAssignment()
+    {
+        Node left = ConstantNumber();
+        
+        if (Check<Token_Assign>())
+        {
+            Consume<Token_Assign>();
+            Node right = ConstantNumber();
+
+            return new Node_VariableAssign()
+            {
+                left = left,
+                value = right
+            };
+        }
+
+        return left;
+    }
+
+    private static Node ConstantNumber()
+    {
+        if (Check<Token_Constant>())
+        {
+            string value = Consume<Token_Constant>().value;
+            return new Node_ConstantNumber(value);
+        }
+        
         return Identifier();
     }
 

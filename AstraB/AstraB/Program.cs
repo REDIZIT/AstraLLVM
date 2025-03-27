@@ -11,6 +11,11 @@ MyFunction()
     int a
     int b
     long c
+    
+    a = 42
+    b = 777
+    c = 1827455253
+    
     print()
 }
 

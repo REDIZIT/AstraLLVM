@@ -47,10 +47,30 @@
             case OpCode.InternalCall: InternalCall(); break;
             case OpCode.ExternalCall: ExternalCall(); break;
             case OpCode.Allocate_Variable: AllocateVariable(); break;
+            case OpCode.Variable_SetValue: VariableSetValue(); break;
             default: throw new NotImplementedException($"There is no implementation for {opCode} opcode");
         }
     }
 
+    private void VariableSetValue()
+    {
+        int mode = NextInt();
+        int sizeInBytes = NextInt();
+        int destVariable = NextAddress();
+        
+
+        if (mode == 0)
+        {
+            int valueVariable = NextAddress();
+            Copy(heap, heap, valueVariable, destVariable, sizeInBytes);
+        }
+        else
+        {
+            byte[] value = NextRange(sizeInBytes);
+            Write(heap, destVariable, value);
+        }
+    }
+    
     private void AllocateVariable()
     {
         int sizeInBytes = NextInt();
@@ -89,6 +109,12 @@
         return BitConverter.ToInt32(NextRange(4));
     }
 
+    private int NextAddress()
+    {
+        int rbp = NextInt();
+        return basePointer + rbp;
+    }
+
     private byte[] NextRange(int count)
     {
         byte[] bytes = module.code.Slice(current, count).ToArray();
@@ -101,6 +127,14 @@
         for (int i = 0; i < value.Length; i++)
         {
             arr[address + i] = value[i];
+        }
+    }
+
+    private void Copy(byte[] source, byte[] destination, int sourceAddress, int destinationAddress, int sizeInBytes)
+    {
+        for (int i = 0; i < sizeInBytes; i++)
+        {
+            destination[destinationAddress + i] = source[sourceAddress + i];
         }
     }
 }

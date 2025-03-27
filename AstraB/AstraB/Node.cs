@@ -50,3 +50,27 @@ public class Node_Identifier : Node
 {
     public string name;
 }
+
+public class Node_ConstantNumber : Node
+{
+    public byte[] value;
+
+    public Node_ConstantNumber()
+    {
+    }
+
+    public Node_ConstantNumber(string str)
+    {
+        long number = long.Parse(str);
+
+        if (number <= byte.MaxValue) value = [(byte)number];
+        else if (number <= short.MaxValue) value = BitConverter.GetBytes((short)number);
+        else if (number <= int.MaxValue) value = BitConverter.GetBytes((int)number);
+        else value = BitConverter.GetBytes(number);
+    }
+}
+
+public class Node_VariableAssign : Node
+{
+    public Node left, value;
+}
