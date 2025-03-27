@@ -18,5 +18,8 @@ MyFunction()
         Module module = Resolver.Resolve(ast);
 
         CompiledModule compiled = Generator.Generate(module);
+
+        VM vm = new();
+        vm.Run(compiled);
     }
 }
