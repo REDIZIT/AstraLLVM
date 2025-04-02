@@ -14,9 +14,9 @@ MyFunction()
     
     a = 42
     b = 777
-    c = a + 1
+    c = b + 1
     
-    print()
+    print(c)
 }
 
 """;

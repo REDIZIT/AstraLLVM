@@ -56,6 +56,7 @@
             {
                 name = functionNode.name,
                 node = functionNode,
+                parameters = new()
             };
             module.Register(functionInfo);
         }
@@ -72,7 +73,13 @@
         module.Register(new TypeInfo("int") { isPrimitive = true, sizeInBytes = 4 });
         module.Register(new TypeInfo("long") { isPrimitive = true, sizeInBytes = 8 });
         
-        module.Register(new FunctionInfo("print"));
+        module.Register(new FunctionInfo("print")
+        {
+            parameters = new ()
+            {
+                new FieldInfo(module.GetType("int"), "number")
+            }
+        });
 
         return module;
     }

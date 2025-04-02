@@ -109,13 +109,24 @@
 
         if (inModuleIndex == 0)
         {
-            Console.WriteLine("Printed as external call!");
+            int argumentRbpOffset = stackPointer - sizeof(int);
+            int pointer = ReadInt(stack, argumentRbpOffset);
+            int value = ReadInt(heap, pointer);
+            
+            Print(value);
         }
         else
         {
             throw new Exception($"Unknown external function with inModuleIndex = {inModuleIndex}");
         }
     }
+
+
+    private void Print(int number)
+    {
+        Console.WriteLine(number);
+    }
+    
 
     private int NextInt()
     {

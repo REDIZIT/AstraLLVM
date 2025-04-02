@@ -107,16 +107,20 @@
 
     private static StaticVariable AllocateVariable(string typeName, string variableName)
     {
-        Add(OpCode.Allocate_Variable);
-
         TypeInfo type = module.GetType(typeName);
+        return AllocateVariable(type, variableName);
+    }
+    private static StaticVariable AllocateVariable(TypeInfo type, string variableName)
+    {
+        Add(OpCode.Allocate_Variable);
         Add(type.sizeInBytes);
 
         StaticVariable variable = new StaticVariable()
         {
             name = variableName,
             rbpOffset = staticRbpOffset,
-            sizeInBytes = type.sizeInBytes
+            sizeInBytes = type.sizeInBytes,
+            type = type,
         };
 
         staticRbpOffset += type.sizeInBytes;
@@ -186,6 +190,34 @@
         {
             FunctionInfo info = module.GetFunction(ident.name);
 
+            
+            if (info.parameters.Count != node.passedArguments.Count)
+            {
+                throw new Exception($"Failed to generate function '{info.name}' due to different count of passed ({node.passedArguments.Count}) and required ({info.parameters.Count}) arguments");
+            }
+
+            // Generate arguments nodes
+            for (int i = 0; i < info.parameters.Count; i++)
+            {
+                FieldInfo paramInfo = info.parameters[i];
+                Node argumentNode = node.passedArguments[i];
+
+                Generate(argumentNode);
+                if (argumentNode.result.type != paramInfo.type)
+                {
+                    throw new Exception($"Failed to generate function '{info.name}' due to invalid passed argument type. Expected '{paramInfo.type.name}' at argument with index {i}, but got '{argumentNode.result.type.name}'");
+                }
+            }
+            
+            // Allocate (duplicate) arguments
+            for (int i = 0; i < info.parameters.Count; i++)
+            {
+                Node argumentNode = node.passedArguments[i];
+
+                StaticVariable argumentVariable = AllocateVariable(argumentNode.result.type, NextTempName());
+                SetValue_Var_Var(argumentVariable, argumentNode.result);
+            }
+
             if (info.module == module)
             {
                 Add(OpCode.InternalCall);
@@ -196,6 +228,9 @@
                 Add(OpCode.ExternalCall);
                 Add(info.inModuleIndex);
             }
+            
+            // Deallocate arguments
+            // TODO: 
         }
         else
         {
@@ -259,4 +294,5 @@ public class StaticVariable
 {
     public string name;
     public int rbpOffset, sizeInBytes;
+    public TypeInfo type;
 }

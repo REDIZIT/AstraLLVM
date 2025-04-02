@@ -84,11 +84,27 @@
         if (Check<Token_BracketOpen>())
         {
             Consume<Token_BracketOpen>();
+
+            List<Node> passedArguments = new();
+            bool isFirst = true;
+            while (Check<Token_Identifier>())
+            {
+                Node passedArgument = Math();
+                passedArguments.Add(passedArgument);
+
+                if (isFirst == false) Consume<Token_Comma>();
+                isFirst = false;
+
+                SkipTerminators();
+            }
+            
+            
             Consume<Token_BracketClose>();
 
             return new Node_FunctionCall()
             {
-                functionNode = left
+                functionNode = left,
+                passedArguments = passedArguments
             };
         }
 

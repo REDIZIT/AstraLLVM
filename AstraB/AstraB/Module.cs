@@ -90,6 +90,8 @@ public class FunctionInfo
 {
     public string name;
     public Node_FunctionDeclaration node;
+
+    public List<FieldInfo> parameters;
     
     public Module module;
     public int inModuleIndex;
@@ -108,4 +110,14 @@ public class FieldInfo
 {
     public TypeInfo type;
     public string name;
+
+    public FieldInfo()
+    {
+    }
+
+    public FieldInfo(TypeInfo type, string name)
+    {
+        this.type = type;
+        this.name = name;
+    }
 }
