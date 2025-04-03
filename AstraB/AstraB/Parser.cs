@@ -25,7 +25,7 @@
     {
         if (Check<Token_Identifier>())
         {
-            if (Check<Token_BlockOpen>(offset: 1))
+            if (Check<Token_BlockOpen>(offset: 1) || Check<Token_Comprassion>(offset: 1))
             {
                 return TypeDeclaration();
             }
@@ -55,16 +55,23 @@
 
     private static Node_TypeDeclaration TypeDeclaration()
     {
+        Token_Identifier ident = Consume<Token_Identifier>();
+
+        List<Token_Identifier> genericTypeAliases = TryParseGenericBand();
+        
+        Node_Block typeBody = Block(InTypeDeclaration);
+        
         return new Node_TypeDeclaration()
         {
-            name = Consume<Token_Identifier>().name,
-            block = Block(InTypeDeclaration)
+            name = ident.name,
+            genericTypeAliases = genericTypeAliases,
+            block = typeBody
         };
     }
 
     private static Node InTypeDeclaration()
     {
-        if (Check<Token_Identifier>() && Check<Token_Identifier>(offset: 1))
+        if ((Check<Token_Identifier>() && Check<Token_Identifier>(offset: 1)) || (Check<Token_Identifier>() && Check<Token_Comprassion>(offset: 1)))
         {
             return FieldDeclaration();
         }
@@ -113,12 +120,18 @@
 
     private static Node VariableDeclaration()
     {
-        if (Check<Token_Identifier>() && Check<Token_Identifier>(offset: 1))
+        if ((Check<Token_Identifier>() && Check<Token_Identifier>(offset: 1)) || (Check<Token_Identifier>() && IsGenericBand(offset: 1)))
         {
+            Token_Identifier typeName = Consume<Token_Identifier>();
+            List<Token_Identifier> concreteGenericTypes = TryParseGenericBand();
+            SkipTerminators();
+            Token_Identifier variableName = Consume<Token_Identifier>();
+            
             return new Node_VariableDeclaration()
             {
-                typeName = Consume<Token_Identifier>().name,
-                variableName = Consume<Token_Identifier>().name
+                typeName = typeName.name,
+                concreteGenericTypes = concreteGenericTypes,
+                variableName = variableName.name
             };
         }
 
@@ -194,11 +207,40 @@
 
     private static Node_FieldDeclaration FieldDeclaration()
     {
+        Token_Identifier typeName = Consume<Token_Identifier>();
+
+        List<Token_Identifier> concreteGenericTypes = TryParseGenericBand();
+        
+        Token_Identifier fieldName = Consume<Token_Identifier>();
+        
+        
         return new Node_FieldDeclaration()
         {
-            typeName = Consume<Token_Identifier>().name,
-            fieldName = Consume<Token_Identifier>().name
+            typeName = typeName.name,
+            concreteGenericTypes = concreteGenericTypes,
+            fieldName = fieldName.name
         };
+    }
+
+    private static bool IsGenericBand(int offset = 0)
+    {
+        return Check<Token_Comprassion>(offset: offset) && Peek<Token_Comprassion>(offset: offset).asmOperatorName == "<";
+    }
+    private static List<Token_Identifier> TryParseGenericBand()
+    {
+        List<Token_Identifier> idents = new();
+        
+        if (IsGenericBand())
+        {
+            Consume<Token_Comprassion>();
+            
+            Token_Identifier ident = Consume<Token_Identifier>();
+            idents.Add(ident);
+            
+            Consume<Token_Comprassion>();
+        }
+
+        return idents;
     }
 
     private static Node_Block Block(Func<Node> layer)
@@ -271,9 +313,13 @@
     {
         return current >= tokens.Count;
     }
-    private static Token Peek()
+    private static Token Peek(int offset = 0)
     {
-        return tokens[current];
+        return tokens[current + offset];
+    }
+    private static T Peek<T>(int offset = 0) where T : Token
+    {
+        return (T)Peek(offset);
     }
     private static T Previous<T>() where T : Token
     {

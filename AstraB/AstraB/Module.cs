@@ -4,6 +4,7 @@
     public List<FunctionInfo> functions = new();
 
     public Dictionary<string, TypeInfo> typeByName = new();
+    public Dictionary<TypeInfo, List<GenericImplementationInfo>> genericTypesByBase = new();
     public Dictionary<string, FunctionInfo> functionByName = new();
 
     public List<Module> usings = new();
@@ -27,6 +28,16 @@
         functions.Add(function);
     }
 
+    public void Register(GenericImplementationInfo type)
+    {
+        if (genericTypesByBase.ContainsKey(type.baseType) == false)
+        {
+            genericTypesByBase.Add(type.baseType, new());
+        }
+        
+        genericTypesByBase[type.baseType].Add(type);
+    }
+
     public TypeInfo GetType(string name)
     {
         if (TryGetType(name, out TypeInfo info)) return info;
@@ -36,6 +47,12 @@
     {
         if (TryGetFunction(name, out FunctionInfo info)) return info;
         throw new Exception($"Function '{name}' not found in module or module's usings");
+    }
+
+    public GenericImplementationInfo GetGeneric(TypeInfo baseType, IEnumerable<TypeInfo> concreteTypes)
+    {
+        if (TryGetGeneric(baseType, concreteTypes, out GenericImplementationInfo info)) return info;
+        throw new Exception($"Generic implementation with base type '{baseType.name}' and concrete types {string.Join(", ", concreteTypes.Select(t => "'" + t.name + "'"))} not found");
     }
 
     public bool TryGetType(string name, out TypeInfo info)
@@ -62,16 +79,60 @@
         info = null;
         return false;
     }
+    public bool TryGetGeneric(TypeInfo baseType, IEnumerable<TypeInfo> concreteTypes, out GenericImplementationInfo info)
+    {
+        info = null;
+        
+        if (genericTypesByBase.TryGetValue(baseType, out var list) == false)
+            return false;
+
+        foreach (GenericImplementationInfo genericInfo in list)
+        {
+            bool isFound = true;
+            
+            for (int i = 0; i < genericInfo.genericTypes.Count; i++)
+            {
+                TypeInfo genericConcreteType = genericInfo.genericTypes[i];
+                TypeInfo askedConcreteType = concreteTypes.ElementAt(i);
+
+                if (genericConcreteType != askedConcreteType)
+                {
+                    isFound = false;
+                    break;
+                }
+            }
+
+            if (isFound)
+            {
+                info = genericInfo;
+                return true;
+            }
+        }
+
+        return false;
+    }
 }
 
-public class TypeInfo
+public interface ITypeInfo
 {
+    string Name { get; }
+    int SizeInBytes { get; }
+}
+
+public class TypeInfo : ITypeInfo
+{
+    public string Name => name;
+    public int SizeInBytes => sizeInBytes;
+    public bool IsGeneric => genericTypeAliases != null && genericTypeAliases.Count > 0;
+    
     public string name;
     public List<FieldInfo> fields;
     public Node_TypeDeclaration node;
 
     public bool isPrimitive;
     public int sizeInBytes;
+    
+    public List<Token_Identifier> genericTypeAliases;
     
     public Module module;
     public int inModuleIndex;
@@ -85,6 +146,21 @@ public class TypeInfo
         this.name = name;
     }
 }
+
+public class GenericImplementationInfo : ITypeInfo
+{
+    public string Name => baseType.name;
+    public int SizeInBytes => baseType.sizeInBytes;
+
+    public TypeInfo baseType;
+    public List<TypeInfo> genericTypes;
+
+    public override string ToString()
+    {
+        return baseType.name + "<" + string.Join(", ", genericTypes.Select(t => t.name)) + ">";
+    }
+}
+
 
 public class FunctionInfo
 {

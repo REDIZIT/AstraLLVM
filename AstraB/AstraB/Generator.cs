@@ -102,28 +102,70 @@
 
     private static void VariableDeclaration(Node_VariableDeclaration node)
     {
-        node.result = AllocateVariable(node.typeName, node.variableName);
+        node.result = AllocateVariable(node.typeName, node.concreteGenericTypes, node.variableName);
     }
 
     private static StaticVariable AllocateVariable(string typeName, string variableName)
     {
-        TypeInfo type = module.GetType(typeName);
-        return AllocateVariable(type, variableName);
+        return AllocateVariable(typeName, null, variableName);
     }
-    private static StaticVariable AllocateVariable(TypeInfo type, string variableName)
+    private static StaticVariable AllocateVariable(string typeName, List<Token_Identifier> concreteGenericTypes, string variableName)
+    {
+        TypeInfo type = module.GetType(typeName);
+
+        if (type.IsGeneric)
+        {
+            if (concreteGenericTypes == null || concreteGenericTypes.Count == 0) 
+                throw new Exception($"Failed to generate code for variable allocation for generic type '{type.name}' due to null or empty concrete generic types list.");
+            
+            if (concreteGenericTypes.Count != type.genericTypeAliases.Count)
+                throw new Exception($"Failed to generate code for variable allocation for generic type '{type.name}' due to different count of concrete generic types and type's generic type aliases.");
+
+            List<TypeInfo> concreteTypes = new();
+            for (int i = 0; i < type.genericTypeAliases.Count; i++)
+            {
+                Token_Identifier alias = type.genericTypeAliases[i];
+                Token_Identifier concrete = concreteGenericTypes[i];
+
+                TypeInfo concreteType = module.GetType(concrete.name);
+                concreteTypes.Add(concreteType);
+            }
+
+            GenericImplementationInfo genericType = null;
+            if (module.TryGetGeneric(type, concreteTypes, out genericType) == false)
+            {
+                genericType = new GenericImplementationInfo()
+                {
+                    baseType = type,
+                    genericTypes = concreteTypes
+                };
+                module.Register(genericType);
+            }
+
+            return AllocateVariable(genericType, variableName);
+        }
+        else
+        {
+            if (concreteGenericTypes != null && concreteGenericTypes.Count > 0)
+                throw new Exception($"Failed to generate code for variable allocation for non-generic type '{type.name}' due to concrete generic types list has more than zero elements.");
+            
+            return AllocateVariable(type, variableName);
+        }
+    }
+    private static StaticVariable AllocateVariable(ITypeInfo type, string variableName)
     {
         Add(OpCode.Allocate_Variable);
-        Add(type.sizeInBytes);
+        Add(type.SizeInBytes);
 
         StaticVariable variable = new StaticVariable()
         {
             name = variableName,
             rbpOffset = staticRbpOffset,
-            sizeInBytes = type.sizeInBytes,
+            sizeInBytes = type.SizeInBytes,
             type = type,
         };
 
-        staticRbpOffset += type.sizeInBytes;
+        staticRbpOffset += type.SizeInBytes;
         
         staticVariables.Push(variable);
         staticVariableByName.Add(variable.name, variable);
@@ -205,7 +247,7 @@
                 Generate(argumentNode);
                 if (argumentNode.result.type != paramInfo.type)
                 {
-                    throw new Exception($"Failed to generate function '{info.name}' due to invalid passed argument type. Expected '{paramInfo.type.name}' at argument with index {i}, but got '{argumentNode.result.type.name}'");
+                    throw new Exception($"Failed to generate function '{info.name}' due to invalid passed argument type. Expected '{paramInfo.type.name}' at argument with index {i}, but got '{argumentNode.result.type.Name}'");
                 }
             }
             
@@ -294,5 +336,5 @@ public class StaticVariable
 {
     public string name;
     public int rbpOffset, sizeInBytes;
-    public TypeInfo type;
+    public ITypeInfo type;
 }

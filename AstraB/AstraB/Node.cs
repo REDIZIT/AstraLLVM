@@ -11,6 +11,7 @@ public class Node_Root : Node_Block
 public class Node_TypeDeclaration : Node
 {
     public string name;
+    public List<Token_Identifier> genericTypeAliases;
     public Node_Block block;
 }
 
@@ -28,12 +29,14 @@ public class Node_Block : Node
 public class Node_FieldDeclaration : Node
 {
     public string typeName, fieldName;
+    public List<Token_Identifier> concreteGenericTypes;
 }
 
 public class Node_VariableDeclaration : Node
 {
     public string typeName;
     public string variableName;
+    public List<Token_Identifier> concreteGenericTypes;
 }
 
 public class Node_Print : Node

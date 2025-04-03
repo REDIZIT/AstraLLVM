@@ -6,17 +6,16 @@
 
 MyType { int a; long b }
 
+Array<T> { }
+
 MyFunction()
 {
     int a
-    int b
-    int c
+    a = 65
     
-    a = 42
-    b = 777
-    c = b + 1
+    Array<int> arr
     
-    print(c)
+    print(a)
 }
 
 """;
@@ -26,6 +25,8 @@ MyFunction()
         var ast = Parser.Parse(tokens);
 
         Module module = Resolver.Resolve(ast);
+        
+        // TODO: Reolsver Generic register
 
         CompiledModule compiled = Generator.Generate(module);
 

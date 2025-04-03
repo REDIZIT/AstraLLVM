@@ -19,6 +19,7 @@
                 name = typeNode.name,
                 fields = new(),
                 node = typeNode,
+                genericTypeAliases = typeNode.genericTypeAliases,
             };
             module.Register(typeInfo);
         }

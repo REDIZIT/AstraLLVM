@@ -41,12 +41,10 @@ public class Token_Comprassion : Token_Operator
     {
         if (IsMatch(word))
         {
-            op = new Token_Comprassion();
-
-            if (word == ">") op.asmOperatorName = "icmp sgt";
-            if (word == ">=") op.asmOperatorName = "icmp sge";
-            if (word == "<") op.asmOperatorName = "icmp slt";
-            if (word == "<=") op.asmOperatorName = "icmp sle";
+            op = new Token_Comprassion
+            {
+                asmOperatorName = word
+            };
 
             return true;
         }
