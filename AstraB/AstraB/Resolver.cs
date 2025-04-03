@@ -49,7 +49,42 @@
         }
         
         //
-        // Pass 4: Register functions
+        // Pass 4: Found and Register Generics
+        //
+        foreach (Node child in root.EnumerateEachChild())
+        {
+            if (child is Node_VariableDeclaration declaration)
+            {
+                TypeInfo type = module.GetType(declaration.typeName);
+
+                if (type.IsGeneric)
+                {
+                    List<TypeInfo> concreteTypes = new();
+                    for (int i = 0; i < type.genericTypeAliases.Count; i++)
+                    {
+                        Token_Identifier alias = type.genericTypeAliases[i];
+                        Token_Identifier concrete = declaration.concreteGenericTypes[i];
+
+                        TypeInfo concreteType = module.GetType(concrete.name);
+                        concreteTypes.Add(concreteType);
+                    }
+
+                    GenericImplementationInfo genericType;
+                    if (module.TryGetGeneric(type, concreteTypes, out genericType) == false)
+                    {
+                        genericType = new GenericImplementationInfo()
+                        {
+                            baseType = type,
+                            genericTypes = concreteTypes
+                        };
+                        module.Register(genericType);
+                    }
+                }
+            }
+        }
+        
+        //
+        // Pass 5: Register functions
         //
         foreach (Node_FunctionDeclaration functionNode in root.children.Where(n => n is Node_FunctionDeclaration))
         {

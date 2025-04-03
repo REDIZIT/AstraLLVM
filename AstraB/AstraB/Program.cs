@@ -25,8 +25,6 @@ MyFunction()
         var ast = Parser.Parse(tokens);
 
         Module module = Resolver.Resolve(ast);
-        
-        // TODO: Reolsver Generic register
 
         CompiledModule compiled = Generator.Generate(module);
 

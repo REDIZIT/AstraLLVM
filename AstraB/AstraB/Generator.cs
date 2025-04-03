@@ -121,27 +121,7 @@
             if (concreteGenericTypes.Count != type.genericTypeAliases.Count)
                 throw new Exception($"Failed to generate code for variable allocation for generic type '{type.name}' due to different count of concrete generic types and type's generic type aliases.");
 
-            List<TypeInfo> concreteTypes = new();
-            for (int i = 0; i < type.genericTypeAliases.Count; i++)
-            {
-                Token_Identifier alias = type.genericTypeAliases[i];
-                Token_Identifier concrete = concreteGenericTypes[i];
-
-                TypeInfo concreteType = module.GetType(concrete.name);
-                concreteTypes.Add(concreteType);
-            }
-
-            GenericImplementationInfo genericType = null;
-            if (module.TryGetGeneric(type, concreteTypes, out genericType) == false)
-            {
-                genericType = new GenericImplementationInfo()
-                {
-                    baseType = type,
-                    genericTypes = concreteTypes
-                };
-                module.Register(genericType);
-            }
-
+            GenericImplementationInfo genericType = module.GetGeneric(type, concreteGenericTypes.Select(t => module.GetType(t.name)));
             return AllocateVariable(genericType, variableName);
         }
         else
