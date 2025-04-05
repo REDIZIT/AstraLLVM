@@ -168,6 +168,7 @@ public class FunctionInfo
     public Node_FunctionDeclaration node;
 
     public List<FieldInfo> parameters;
+    public List<FieldInfo> returns;
     
     public Module module;
     public int inModuleIndex;

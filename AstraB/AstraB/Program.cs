@@ -10,12 +10,13 @@ Array<T> { }
 
 MyFunction()
 {
-    int a
-    a = 65
+    int number
+    number = 66
+    print(number)
     
-    Array<int> arr
-    
-    print(a)
+    int another
+
+    print(number)
 }
 
 """;

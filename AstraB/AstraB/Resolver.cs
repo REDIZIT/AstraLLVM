@@ -108,12 +108,43 @@
         module.Register(new TypeInfo("short") { isPrimitive = true, sizeInBytes = 2 });
         module.Register(new TypeInfo("int") { isPrimitive = true, sizeInBytes = 4 });
         module.Register(new TypeInfo("long") { isPrimitive = true, sizeInBytes = 8 });
+        module.Register(new TypeInfo("ptr") { isPrimitive = true, sizeInBytes = 4 });
         
         module.Register(new FunctionInfo("print")
         {
-            parameters = new ()
+            parameters = new()
             {
                 new FieldInfo(module.GetType("int"), "number")
+            }
+        });
+        
+        
+        module.Register(new FunctionInfo("set_int")
+        {
+            parameters = new()
+            {
+                new FieldInfo(module.GetType("ptr"), "pointer"),
+                new FieldInfo(module.GetType("int"), "value"),
+            }
+        });
+        
+        module.Register(new FunctionInfo("get_int")
+        {
+            parameters = new()
+            {
+                new FieldInfo(module.GetType("ptr"), "pointer"),
+            },
+            returns = new()
+            {
+                new FieldInfo(module.GetType("int"), "value"),
+            }
+        });
+        
+        module.Register(new FunctionInfo("print_ptr")
+        {
+            parameters = new()
+            {
+                new FieldInfo(module.GetType("ptr"), "number")
             }
         });
 

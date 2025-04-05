@@ -2,6 +2,7 @@
 {
     private static CompiledModule compiled;
     private static Module module;
+    private static List<Instruction> instructions;
 
     private static Stack<StaticVariable> staticVariables = new();
     private static Dictionary<string, StaticVariable> staticVariableByName = new();
@@ -12,10 +13,14 @@
     public static CompiledModule Generate(Module module)
     {
         compiled = new();
+        instructions = new();
         Generator.module = module;
         staticVariables.Clear();
         staticRbpOffset = 0;
 
+        //
+        // Generate instructions
+        //
         foreach (FunctionInfo function in module.functions)
         {
             int pointer = compiled.code.Count;
@@ -24,6 +29,17 @@
             
             Generate(function.node);
         }
+        
+        //
+        // Encode instruction into byte-code
+        //
+        InstructionEncoder encoder = new();
+        foreach (Instruction instruction in instructions)
+        {
+            instruction.Encode(encoder);
+        }
+
+        compiled.code = encoder.code;
 
         return compiled;
     }
@@ -34,9 +50,6 @@
         {
             case Node_FunctionDeclaration functionDeclaration:
                 FunctionDeclaration(functionDeclaration);
-                break;
-            case Node_Print print:
-                Print(print);
                 break;
             case Node_FunctionCall call:
                 FunctionCall(call);
@@ -55,6 +68,9 @@
                 break;
             case Node_Identifier ident:
                 LoadVariable(ident);
+                break;
+            case Node_CastTo cast:
+                Cast(cast);
                 break;
             default:
                 throw new Exception($"Failed to generate due to unexpected node '{node}'");
@@ -80,11 +96,24 @@
         TypeInfo resultType = module.GetType(node.tokenOperator.ResultType);
         node.result = AllocateVariable(resultType.name, NextTempName());
         
-        Add(OpCode.Math);
-        Add((int)0);
-        Add(node.result.rbpOffset);
-        Add(node.left.result.rbpOffset);
-        Add(node.right.result.rbpOffset);
+        Add(new Math_Instruction(node.left.result.rbpOffset, node.right.result.rbpOffset, node.result.rbpOffset));
+    }
+
+    private static void Cast(Node_CastTo node)
+    {
+        Generate(node.valueToCast);
+
+        TypeInfo targetType = module.GetType(node.typeName);
+
+        if (targetType.name == "ptr")
+        {
+            node.result = AllocateVariable(targetType, NextTempName());
+            SetValue_Var_Ptr(node.result, node.valueToCast.result);
+        }
+        else
+        {
+            throw new NotImplementedException();
+        }
     }
 
     private static void FunctionDeclaration(Node_FunctionDeclaration node)
@@ -115,28 +144,16 @@
 
         if (type.IsGeneric)
         {
-            if (concreteGenericTypes == null || concreteGenericTypes.Count == 0) 
-                throw new Exception($"Failed to generate code for variable allocation for generic type '{type.name}' due to null or empty concrete generic types list.");
-            
-            if (concreteGenericTypes.Count != type.genericTypeAliases.Count)
-                throw new Exception($"Failed to generate code for variable allocation for generic type '{type.name}' due to different count of concrete generic types and type's generic type aliases.");
-
             GenericImplementationInfo genericType = module.GetGeneric(type, concreteGenericTypes.Select(t => module.GetType(t.name)));
             return AllocateVariable(genericType, variableName);
         }
         else
         {
-            if (concreteGenericTypes != null && concreteGenericTypes.Count > 0)
-                throw new Exception($"Failed to generate code for variable allocation for non-generic type '{type.name}' due to concrete generic types list has more than zero elements.");
-            
             return AllocateVariable(type, variableName);
         }
     }
     private static StaticVariable AllocateVariable(ITypeInfo type, string variableName)
     {
-        Add(OpCode.Allocate_Variable);
-        Add(type.SizeInBytes);
-
         StaticVariable variable = new StaticVariable()
         {
             name = variableName,
@@ -149,6 +166,8 @@
         
         staticVariables.Push(variable);
         staticVariableByName.Add(variable.name, variable);
+        
+        Add(new AllocateVariable_Instruction(type.SizeInBytes));
 
         return variable;
     }
@@ -185,25 +204,17 @@
 
     private static void SetValue_Var_Var(StaticVariable dest, StaticVariable value)
     {
-        Add(OpCode.Variable_SetValue);
-        Add((int)0);
-        Add(dest.sizeInBytes);
-        Add(dest.rbpOffset);
-        Add(value.rbpOffset);
+        Add(SetValue_Instruction.Variable_to_Variable(dest.rbpOffset, value.rbpOffset, dest.sizeInBytes));
     }
 
     private static void SetValue_Var_Const(StaticVariable dest, byte[] value)
     {
-        Add(OpCode.Variable_SetValue);
-        Add((int)1);
-        Add(dest.sizeInBytes);
-        Add(dest.rbpOffset);
-        AddRange(value, dest.sizeInBytes);
+        Add(SetValue_Instruction.Const_to_Variable(dest.rbpOffset, value));
     }
-
-    private static void Print(Node_Print node)
+    
+    private static void SetValue_Var_Ptr(StaticVariable dest, StaticVariable value)
     {
-        Add(OpCode.Print);
+        Add(SetValue_Instruction.Pointer_to_Variable(dest.rbpOffset, value.rbpOffset, dest.sizeInBytes));
     }
 
     private static void FunctionCall(Node_FunctionCall node)
@@ -217,6 +228,22 @@
             {
                 throw new Exception($"Failed to generate function '{info.name}' due to different count of passed ({node.passedArguments.Count}) and required ({info.parameters.Count}) arguments");
             }
+
+            // Generate placeholders for returns
+            if (info.returns != null)
+            {
+                if (info.returns.Count > 1)
+                {
+                    throw new NotSupportedException("Only 1 function return variable supported yet.");
+                }
+                else if (info.returns.Count == 1)
+                {
+                    FieldInfo retInfo = info.returns[0];
+                    node.result = AllocateVariable(retInfo.type, NextTempName());
+                }
+            }
+            
+            int staticRbpSaver = staticRbpOffset;
 
             // Generate arguments nodes
             for (int i = 0; i < info.parameters.Count; i++)
@@ -239,20 +266,9 @@
                 StaticVariable argumentVariable = AllocateVariable(argumentNode.result.type, NextTempName());
                 SetValue_Var_Var(argumentVariable, argumentNode.result);
             }
-
-            if (info.module == module)
-            {
-                Add(OpCode.InternalCall);
-                Add(info.inModuleIndex);
-            }
-            else
-            {
-                Add(OpCode.ExternalCall);
-                Add(info.inModuleIndex);
-            }
+            staticRbpOffset = staticRbpSaver;
             
-            // Deallocate arguments
-            // TODO: 
+            Add(new FunctionCall_Instruction(info.inModuleIndex, info.module != module));
         }
         else
         {
@@ -266,37 +282,9 @@
         return "temp_" + tempNameIndex;
     }
 
-    private static void Add(OpCode code)
+    private static void Add(Instruction instruction)
     {
-        Add((byte)code);
-    }
-    private static void Add(byte value)
-    {
-        compiled.code.Add(value);
-    }
-    private static void AddRange(byte[] value, int padSize = 0)
-    {
-        compiled.code.AddRange(value);
-
-        for (int i = 0; i < padSize - value.Length; i++)
-        {
-            compiled.code.Add((byte)0);
-        }
-    }
-    private static void Add(short value)
-    {
-        byte[] bytes = BitConverter.GetBytes(value);
-        AddRange(bytes);
-    }
-    private static void Add(int value)
-    {
-        byte[] bytes = BitConverter.GetBytes(value);
-        AddRange(bytes);
-    }
-    private static void Add(long value)
-    {
-        byte[] bytes = BitConverter.GetBytes(value);
-        AddRange(bytes);
+        instructions.Add(instruction);
     }
 }
 
@@ -304,12 +292,13 @@ public enum OpCode : byte
 {
     Invalid = 0,
     Nop,
-    Print,
     InternalCall,
     ExternalCall,
     Allocate_Variable,
     Variable_SetValue,
-    Math
+    Math,
+    BeginScope,
+    DropScope,
 }
 
 public class StaticVariable

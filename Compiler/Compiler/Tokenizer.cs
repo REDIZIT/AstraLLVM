@@ -21,6 +21,7 @@
         { ".", typeof(Token_Dot) },
         { "[", typeof(Token_SquareBracketOpen) },
         { "]", typeof(Token_SquareBracketClose) },
+        { "to", typeof(Token_CastTo) },
     };
 
     public static List<Token> Tokenize(string rawCode)

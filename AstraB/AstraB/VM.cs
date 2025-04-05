@@ -1,10 +1,12 @@
-﻿public class VM
+﻿using AVM;
+
+public class VM
 {
     private CompiledModule module;
 
     private int current;
 
-    private byte[] stack, heap;
+    private Memory stack, heap;
     private int stackPointer, basePointer;
     private int heapPointer;
     
@@ -13,14 +15,16 @@
         this.module = module;
         current = module.functionPointerByID[0];
 
-        stack = new byte[1024];
-        heap = new byte[1024];
+        stack = new();
+        heap = new();
         stackPointer = 0;
         basePointer = 0;
         
 
         int opsDone = 0;
         int opsLimit = 1000;
+
+        List<OpCode> ops = new();
 
         while (current < module.code.Count)
         {
@@ -30,6 +34,7 @@
             }
 
             OpCode opCode = (OpCode)module.code[current];
+            ops.Add(opCode);
             current++;
             
             Execute(opCode);
@@ -43,14 +48,27 @@
         switch (opCode)
         {
             case OpCode.Nop: return;
-            case OpCode.Print: Console.WriteLine("Printed!"); break;
             case OpCode.InternalCall: InternalCall(); break;
             case OpCode.ExternalCall: ExternalCall(); break;
             case OpCode.Allocate_Variable: AllocateVariable(); break;
             case OpCode.Variable_SetValue: VariableSetValue(); break;
             case OpCode.Math: Math(); break;
+            case OpCode.BeginScope: BeginScope(); break;
+            case OpCode.DropScope: DropScope(); break;
             default: throw new NotImplementedException($"There is no implementation for {opCode} opcode");
         }
+    }
+
+    private void BeginScope()
+    {
+        PushInt(basePointer);
+        basePointer = stackPointer;
+    }
+    
+    private void DropScope()
+    {
+        stackPointer = basePointer;
+        basePointer = PopInt();
     }
 
     private void Math()
@@ -60,9 +78,9 @@
         int aAddress = NextAddress();
         int bAddress = NextAddress();
 
-        int aValue = ReadInt(heap, aAddress);
-        int bValue = ReadInt(heap, bAddress);
-        WriteInt(heap, resultAddress, aValue + bValue);
+        int aValue = heap.ReadInt(aAddress);
+        int bValue = heap.ReadInt(bAddress);
+        heap.WriteInt(resultAddress, aValue + bValue);
     }
 
     private void VariableSetValue()
@@ -70,17 +88,31 @@
         int mode = NextInt();
         int sizeInBytes = NextInt();
         int destVariable = NextAddress();
+        int destHeapAddress = stack.ReadInt(destVariable);
         
 
         if (mode == 0)
         {
+            // Value
             int valueVariable = NextAddress();
-            Copy(heap, heap, valueVariable, destVariable, sizeInBytes);
+            heap.Copy(valueVariable, destHeapAddress, (byte)sizeInBytes);
+        }
+        else if (mode == 1)
+        {
+            // Const
+            byte[] value = NextRange(sizeInBytes);
+            heap.Write(destHeapAddress, value);
+        }
+        else if (mode == 2)
+        {
+            // Pointer
+            // SetValue_Var_Ptr
+            int valueVariable = NextAddress();
+            heap.WriteInt(destHeapAddress, valueVariable);
         }
         else
         {
-            byte[] value = NextRange(sizeInBytes);
-            Write(heap, destVariable, value);
+            throw new Exception($"Invalid variable set value mode ({mode})");
         }
     }
     
@@ -89,9 +121,12 @@
         int sizeInBytes = NextInt();
 
         int heapAddress = heapPointer;
-        heapPointer += sizeInBytes;
+        stack.Write(stackPointer, BitConverter.GetBytes(heapAddress), noLogs: true);
 
-        Write(stack, stackPointer, BitConverter.GetBytes(heapAddress));
+        stack.logger.Log_Allocate(stackPointer, sizeInBytes);
+        heap.logger.Log_Allocate(heapAddress, sizeInBytes);
+        
+        heapPointer += sizeInBytes;
         stackPointer += sizeInBytes;
     }
     
@@ -109,9 +144,33 @@
 
         if (inModuleIndex == 0)
         {
-            int argumentRbpOffset = stackPointer - sizeof(int);
-            int pointer = ReadInt(stack, argumentRbpOffset);
-            int value = ReadInt(heap, pointer);
+            int argumentRbpOffset = basePointer - sizeof(int) * 2;
+            int value = ReadValueInt(argumentRbpOffset);
+            
+            Print(value);
+        }
+        else if (inModuleIndex == 1)
+        {
+            int pointer = ReadValueInt(basePointer + sizeof(int));
+            int value = ReadValueInt(basePointer + sizeof(int) + sizeof(int));
+            
+            heap.WriteInt(pointer, value);
+            
+            Console.WriteLine($"Write at {pointer}, value = {value}");
+        }
+        else if (inModuleIndex == 2)
+        {
+            int pointer = ReadValueInt(basePointer + sizeof(int));
+            int value = heap.ReadInt(pointer);
+
+            int returnPointer = ReadValueInt(basePointer - sizeof(int));
+            
+            Console.WriteLine($"Get value at {pointer} ({basePointer + sizeof(int)}), value = {value}, returnPointer at {returnPointer} ({basePointer - sizeof(int)})");
+        }
+        else if (inModuleIndex == 3)
+        {
+            int argumentRbpOffset = basePointer - sizeof(int) * 2;
+            int value = ReadValueInt(argumentRbpOffset);
             
             Print(value);
         }
@@ -145,30 +204,22 @@
         current += count;
         return bytes;
     }
-
-    private void Write(byte[] arr, int address, byte[] value)
+    
+    private int ReadValueInt(int stackAddress)
     {
-        for (int i = 0; i < value.Length; i++)
-        {
-            arr[address + i] = value[i];
-        }
+        int pointer = stack.ReadInt(stackAddress);
+        return heap.ReadInt(pointer);
+    }
+    
+    private void PushInt(int value)
+    {
+        stack.WriteInt(stackPointer, value);
+        stackPointer += 4;
     }
 
-    private void WriteInt(byte[] arr, int address, int value)
+    private int PopInt()
     {
-        Write(arr, address, BitConverter.GetBytes(value));
-    }
-
-    private int ReadInt(byte[] arr, int address)
-    {
-        return BitConverter.ToInt32(arr, address);
-    }
-
-    private void Copy(byte[] source, byte[] destination, int sourceAddress, int destinationAddress, int sizeInBytes)
-    {
-        for (int i = 0; i < sizeInBytes; i++)
-        {
-            destination[destinationAddress + i] = source[sourceAddress + i];
-        }
+        stackPointer -= 4;
+        return stack.ReadInt(stackPointer);
     }
 }

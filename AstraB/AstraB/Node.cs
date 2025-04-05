@@ -78,14 +78,6 @@ public class Node_VariableDeclaration : Node
     }
 }
 
-public class Node_Print : Node
-{
-    public override IEnumerable<Node> EnumerateChildren()
-    {
-        yield break;
-    }
-}
-
 public class Node_FunctionCall : Node
 {
     public Node functionNode;
@@ -124,17 +116,19 @@ public class Node_ConstantNumber : Node
     {
         long number = long.Parse(str);
 
-        if (number <= byte.MaxValue)
-        {
-            typeName = "byte";
-            value = [(byte)number];
-        }
-        else if (number <= short.MaxValue)
-        {
-            typeName = "short";
-            value = BitConverter.GetBytes((short)number);
-        }
-        else if (number <= int.MaxValue)
+        // if (number <= byte.MaxValue)
+        // {
+        //     typeName = "byte";
+        //     value = [(byte)number];
+        // }
+        // else if (number <= short.MaxValue)
+        // {
+        //     typeName = "short";
+        //     value = BitConverter.GetBytes((short)number);
+        // }
+        // else 
+        
+        if (number <= int.MaxValue)
         {
             typeName = "int";
             value = BitConverter.GetBytes((int)number);
@@ -172,5 +166,16 @@ public class Node_Binary : Node
     {
         yield return left;
         yield return right;
+    }
+}
+
+public class Node_CastTo : Node
+{
+    public Node valueToCast;
+    public string typeName;
+
+    public override IEnumerable<Node> EnumerateChildren()
+    {
+        yield return valueToCast;
     }
 }

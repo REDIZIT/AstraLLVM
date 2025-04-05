@@ -100,3 +100,7 @@ public class Token_SquareBracketOpen : Token
 public class Token_SquareBracketClose : Token
 {
 }
+
+public class Token_CastTo : Token
+{
+}
