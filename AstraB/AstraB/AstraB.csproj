@@ -11,4 +11,8 @@
       <ProjectReference Include="..\..\Compiler\AstraLLVM.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="1 Tokenization\" />
+    </ItemGroup>
+
 </Project>
