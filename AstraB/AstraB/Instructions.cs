@@ -44,6 +44,8 @@ public abstract class Instruction
 public class AllocateVariable_Instruction : Instruction
 {
     public int sizeInBytes;
+
+    public StaticVariable staticVariable;
     
     public AllocateVariable_Instruction(int sizeInBytes)
     {
@@ -54,6 +56,12 @@ public class AllocateVariable_Instruction : Instruction
     {
         encoder.Add(OpCode.Allocate_Variable);
         encoder.Add(sizeInBytes);
+    }
+
+    public AllocateVariable_Instruction WithDebug(StaticVariable staticVariable)
+    {
+        this.staticVariable = staticVariable;
+        return this;
     }
 }
 
@@ -82,14 +90,15 @@ public class Math_Instruction : Instruction
 public class SetValue_Instruction : Instruction
 {
     public int mode;
-    public int targetRbpOffset, valueRbpOffset, sizeInBytes;
+    public ScopeRelativeRbpOffset targetRbpOffset, valueRbpOffset;
+    public int sizeInBytes;
     public byte[] constant;
 
     private SetValue_Instruction()
     {
     }
 
-    public static SetValue_Instruction Variable_to_Variable(int targetRbpOffset, int valueRbpOffset, int sizeInBytes)
+    public static SetValue_Instruction Variable_to_Variable(ScopeRelativeRbpOffset targetRbpOffset, ScopeRelativeRbpOffset valueRbpOffset, int sizeInBytes)
     {
         return new SetValue_Instruction()
         {
@@ -100,7 +109,7 @@ public class SetValue_Instruction : Instruction
         };
     }
 
-    public static SetValue_Instruction Const_to_Variable(int targetRbpOffset, byte[] constant)
+    public static SetValue_Instruction Const_to_Variable(ScopeRelativeRbpOffset targetRbpOffset, byte[] constant)
     {
         return new SetValue_Instruction()
         {
@@ -111,7 +120,7 @@ public class SetValue_Instruction : Instruction
         };
     }
     
-    public static SetValue_Instruction Pointer_to_Variable(int targetRbpOffset, int valueRbpOffset, int sizeInBytes)
+    public static SetValue_Instruction Pointer_to_Variable(ScopeRelativeRbpOffset targetRbpOffset, ScopeRelativeRbpOffset valueRbpOffset, int sizeInBytes)
     {
         return new SetValue_Instruction()
         {
@@ -164,9 +173,52 @@ public class FunctionCall_Instruction : Instruction
 
     public override void Encode(InstructionEncoder encoder)
     {
-        encoder.Add(OpCode.BeginScope);
         encoder.Add(isExternal ? OpCode.ExternalCall : OpCode.InternalCall);
         encoder.Add(functionInModuleIndex);
-        encoder.Add(OpCode.DropScope);
+    }
+}
+
+public class Scope_Instruction : Instruction
+{
+    public bool isBeginning;
+
+    public Scope_Instruction(bool isBeginning)
+    {
+        this.isBeginning = isBeginning;
+    }
+
+    public override void Encode(InstructionEncoder encoder)
+    {
+        encoder.Add(isBeginning ? OpCode.BeginScope : OpCode.DropScope);
+    }
+}
+
+public class Empty_Instruction : Instruction
+{
+    public Empty_Instruction()
+    {
+    }
+
+    public override void Encode(InstructionEncoder encoder)
+    {
+    }
+}
+
+public class Debug_Instruction : Instruction
+{
+    public string message;
+    
+    public Debug_Instruction(string message)
+    {
+        this.message = message;
+    }
+
+    public override void Encode(InstructionEncoder encoder)
+    {
+    }
+
+    public override string ToString()
+    {
+        return message;
     }
 }

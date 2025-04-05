@@ -14,7 +14,7 @@ MyFunction()
     number = 66
     print(number)
     
-    int another
+    number = 77
 
     print(number)
 }

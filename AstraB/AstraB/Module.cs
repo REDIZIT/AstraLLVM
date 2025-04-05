@@ -117,6 +117,8 @@ public interface ITypeInfo
 {
     string Name { get; }
     int SizeInBytes { get; }
+    bool IsPrimitive { get; }
+    int RefSizeInBytes => IsPrimitive ? SizeInBytes : Constants.POINTER_SIZE_IN_BYTES;
 }
 
 public class TypeInfo : ITypeInfo
@@ -124,7 +126,8 @@ public class TypeInfo : ITypeInfo
     public string Name => name;
     public int SizeInBytes => sizeInBytes;
     public bool IsGeneric => genericTypeAliases != null && genericTypeAliases.Count > 0;
-    
+    public bool IsPrimitive => isPrimitive;
+
     public string name;
     public List<FieldInfo> fields;
     public Node_TypeDeclaration node;
@@ -151,6 +154,7 @@ public class GenericImplementationInfo : ITypeInfo
 {
     public string Name => baseType.name;
     public int SizeInBytes => baseType.sizeInBytes;
+    public bool IsPrimitive => baseType.IsPrimitive;
 
     public TypeInfo baseType;
     public List<TypeInfo> genericTypes;

@@ -3,11 +3,8 @@
     private static CompiledModule compiled;
     private static Module module;
     private static List<Instruction> instructions;
-
-    private static Stack<StaticVariable> staticVariables = new();
-    private static Dictionary<string, StaticVariable> staticVariableByName = new();
-    private static int staticRbpOffset;
-
+    
+    private static Scope_GenerationPhase currentScope;
     private static int tempNameIndex;
     
     public static CompiledModule Generate(Module module)
@@ -15,8 +12,7 @@
         compiled = new();
         instructions = new();
         Generator.module = module;
-        staticVariables.Clear();
-        staticRbpOffset = 0;
+        currentScope = new();
 
         //
         // Generate instructions
@@ -79,7 +75,7 @@
 
     private static void LoadVariable(Node_Identifier ident)
     {
-        ident.result = staticVariableByName[ident.name];
+        ident.result = currentScope.GetVariable(ident.name);
     }
 
     private static void Constant(Node_ConstantNumber constant)
@@ -154,20 +150,8 @@
     }
     private static StaticVariable AllocateVariable(ITypeInfo type, string variableName)
     {
-        StaticVariable variable = new StaticVariable()
-        {
-            name = variableName,
-            rbpOffset = staticRbpOffset,
-            sizeInBytes = type.SizeInBytes,
-            type = type,
-        };
-
-        staticRbpOffset += type.SizeInBytes;
-        
-        staticVariables.Push(variable);
-        staticVariableByName.Add(variable.name, variable);
-        
-        Add(new AllocateVariable_Instruction(type.SizeInBytes));
+        StaticVariable variable = currentScope.RegisterLocalVariable(type, variableName);
+        Add(new AllocateVariable_Instruction(type.SizeInBytes).WithDebug(variable));
 
         return variable;
     }
@@ -176,7 +160,7 @@
     {
         if (node.left is Node_Identifier ident)
         {
-            StaticVariable variable = staticVariableByName[ident.name];
+            StaticVariable variable = currentScope.GetVariable(ident.name);
 
             Generate(node.value);
             
@@ -204,17 +188,22 @@
 
     private static void SetValue_Var_Var(StaticVariable dest, StaticVariable value)
     {
-        Add(SetValue_Instruction.Variable_to_Variable(dest.rbpOffset, value.rbpOffset, dest.sizeInBytes));
+        ScopeRelativeRbpOffset destOffset = currentScope.GetRelativeRBP(dest);
+        ScopeRelativeRbpOffset valueOffset = currentScope.GetRelativeRBP(value);
+        Add(SetValue_Instruction.Variable_to_Variable(destOffset, valueOffset, dest.sizeInBytes));
     }
 
     private static void SetValue_Var_Const(StaticVariable dest, byte[] value)
     {
-        Add(SetValue_Instruction.Const_to_Variable(dest.rbpOffset, value));
+        ScopeRelativeRbpOffset destOffset = currentScope.GetRelativeRBP(dest);
+        Add(SetValue_Instruction.Const_to_Variable(destOffset, value));
     }
     
     private static void SetValue_Var_Ptr(StaticVariable dest, StaticVariable value)
     {
-        Add(SetValue_Instruction.Pointer_to_Variable(dest.rbpOffset, value.rbpOffset, dest.sizeInBytes));
+        ScopeRelativeRbpOffset destOffset = currentScope.GetRelativeRBP(dest);
+        ScopeRelativeRbpOffset valueOffset = currentScope.GetRelativeRBP(value);
+        Add(SetValue_Instruction.Pointer_to_Variable(destOffset, valueOffset, dest.sizeInBytes));
     }
 
     private static void FunctionCall(Node_FunctionCall node)
@@ -243,8 +232,12 @@
                 }
             }
             
-            int staticRbpSaver = staticRbpOffset;
-
+            
+            Add(new Debug_Instruction($"Allocate arguments to pass"));
+            
+            // Add(new Scope_Instruction(true));
+            // currentScope = currentScope.CreateSubScope();
+            
             // Generate arguments nodes
             for (int i = 0; i < info.parameters.Count; i++)
             {
@@ -264,11 +257,19 @@
                 Node argumentNode = node.passedArguments[i];
 
                 StaticVariable argumentVariable = AllocateVariable(argumentNode.result.type, NextTempName());
+                
+                Add(new Debug_Instruction($"Sus: copy from {currentScope.GetRelativeRBP(argumentNode.result)} to {currentScope.GetRelativeRBP(argumentVariable)}"));
+                
                 SetValue_Var_Var(argumentVariable, argumentNode.result);
             }
-            staticRbpOffset = staticRbpSaver;
             
             Add(new FunctionCall_Instruction(info.inModuleIndex, info.module != module));
+            
+            
+            Add(new Debug_Instruction($"Deallocate"));
+            
+            // currentScope = currentScope.parent;
+            // Add(new Scope_Instruction(false));
         }
         else
         {
@@ -306,4 +307,5 @@ public class StaticVariable
     public string name;
     public int rbpOffset, sizeInBytes;
     public ITypeInfo type;
+    public Scope_GenerationPhase scope;
 }

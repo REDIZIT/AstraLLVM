@@ -87,15 +87,20 @@ public class VM
     {
         int mode = NextInt();
         int sizeInBytes = NextInt();
-        int destVariable = NextAddress();
-        int destHeapAddress = stack.ReadInt(destVariable);
+
+        int destRbpOffset = NextInt();
+        int destStackAddress = ToAbs(destRbpOffset);
+        int destHeapAddress = stack.ReadInt(destStackAddress);
         
 
         if (mode == 0)
         {
             // Value
-            int valueVariable = NextAddress();
-            heap.Copy(valueVariable, destHeapAddress, (byte)sizeInBytes);
+            int valueRbpOffset = NextInt();
+            int valueStackAddress = ToAbs(valueRbpOffset);
+            int valueHeapAddress = stack.ReadInt(valueStackAddress);
+            
+            heap.Copy(valueHeapAddress, destHeapAddress, (byte)sizeInBytes);
         }
         else if (mode == 1)
         {
@@ -144,7 +149,7 @@ public class VM
 
         if (inModuleIndex == 0)
         {
-            int argumentRbpOffset = basePointer - sizeof(int) * 2;
+            int argumentRbpOffset = stackPointer - sizeof(int) * 1;
             int value = ReadValueInt(argumentRbpOffset);
             
             Print(value);
@@ -196,6 +201,11 @@ public class VM
     {
         int rbp = NextInt();
         return basePointer + rbp;
+    }
+
+    private int ToAbs(int rbpOffset)
+    {
+        return basePointer + rbpOffset;
     }
 
     private byte[] NextRange(int count)
