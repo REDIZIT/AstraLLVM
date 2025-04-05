@@ -5,6 +5,7 @@
         { "(", typeof(Token_BracketOpen) },
         { ")", typeof(Token_BracketClose) },
         { "=", typeof(Token_Assign) },
+        { "~=", typeof(Token_AssignByPointer) },
         { "{", typeof(Token_BlockOpen) },
         { "}", typeof(Token_BlockClose) },
         { "if", typeof(Token_If) },

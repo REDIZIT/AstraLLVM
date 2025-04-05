@@ -162,8 +162,15 @@
         StaticVariable variable = node.left.result;
         
         Generate(node.value);
-            
-        SetValue_Var_Var(variable, node.value.result);
+
+        if (node.isByPointer)
+        {
+            SetValue_Var_To_Ptr(variable, node.value.result);
+        }
+        else
+        {
+            SetValue_Var_Var(variable, node.value.result);   
+        }
     }
 
     private static void SetValue_Var_Var(StaticVariable dest, StaticVariable value)
@@ -184,6 +191,13 @@
         ScopeRelativeRbpOffset destOffset = currentScope.GetRelativeRBP(dest);
         ScopeRelativeRbpOffset valueOffset = currentScope.GetRelativeRBP(value);
         Add(SetValue_Instruction.Pointer_to_Variable(destOffset, valueOffset, dest.sizeInBytes));
+    }
+    
+    private static void SetValue_Var_To_Ptr(StaticVariable dest, StaticVariable value)
+    {
+        ScopeRelativeRbpOffset destOffset = currentScope.GetRelativeRBP(dest);
+        ScopeRelativeRbpOffset valueOffset = currentScope.GetRelativeRBP(value);
+        Add(SetValue_Instruction.Variable_to_Pointer(destOffset, valueOffset, dest.sizeInBytes));
     }
 
     private static void FunctionCall(Node_FunctionCall node)

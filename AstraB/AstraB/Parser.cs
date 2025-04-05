@@ -99,6 +99,18 @@
                 value = right
             };
         }
+        else if (Check<Token_AssignByPointer>())
+        {
+            Consume<Token_AssignByPointer>();
+            Node right = VariableDeclaration();
+            
+            return new Node_VariableAssign()
+            {
+                left = left,
+                value = right,
+                isByPointer = true
+            };
+        }
 
         return left;
     }

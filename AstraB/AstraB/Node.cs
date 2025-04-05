@@ -149,6 +149,7 @@ public class Node_ConstantNumber : Node
 public class Node_VariableAssign : Node
 {
     public Node left, value;
+    public bool isByPointer;
 
     public override IEnumerable<Node> EnumerateChildren()
     {

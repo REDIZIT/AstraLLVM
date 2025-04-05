@@ -100,15 +100,15 @@ public class VM
         int mode = NextInt();
         int sizeInBytes = NextInt();
 
-        int destRbpOffset = NextInt();
-        int destStackAddress = ToAbs(destRbpOffset);
-        int destHeapAddress = stack.ReadInt(destStackAddress);
+        ScopeRelativeRbpOffset destRbpOffset = NextRBP();
+        StackAddress destStackAddress = ToAbs(destRbpOffset);
+        HeapAddress destHeapAddress = new HeapAddress(stack.ReadInt(destStackAddress));
         
 
         if (mode == 0)
         {
             // Value
-            int valueRbpOffset = NextInt();
+            ScopeRelativeRbpOffset valueRbpOffset = NextRBP();
             int valueStackAddress = ToAbs(valueRbpOffset);
             int valueHeapAddress = stack.ReadInt(valueStackAddress);
             
@@ -126,6 +126,16 @@ public class VM
             // SetValue_Var_Ptr
             int valueVariable = NextAddress();
             heap.WriteInt(destHeapAddress, valueVariable);
+        }
+        else if (mode == 3)
+        {
+            // SetValue_Var_To_Ptr
+            StackAddress valueVariable = NextAddress();
+            int value = stack.ReadInt(valueVariable);
+            
+            int pointer = heap.ReadInt(destHeapAddress);
+            
+            heap.Copy(value, pointer, (byte)sizeInBytes);
         }
         else
         {
@@ -186,15 +196,20 @@ public class VM
         return BitConverter.ToInt32(NextRange(4));
     }
 
-    private int NextAddress()
+    private ScopeRelativeRbpOffset NextRBP()
     {
-        int rbp = NextInt();
-        return basePointer + rbp;
+        return new ScopeRelativeRbpOffset(NextInt());
     }
 
-    private int ToAbs(int rbpOffset)
+    private StackAddress NextAddress()
     {
-        return basePointer + rbpOffset;
+        ScopeRelativeRbpOffset rbp = NextRBP();
+        return ToAbs(rbp);
+    }
+
+    private StackAddress ToAbs(ScopeRelativeRbpOffset rbpOffset)
+    {
+        return new StackAddress(basePointer + rbpOffset);
     }
 
     private byte[] NextRange(int count)

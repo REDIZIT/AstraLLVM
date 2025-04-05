@@ -30,6 +30,10 @@ public class Token_Identifier : Token
 public class Token_Assign : Token
 {
 }
+
+public class Token_AssignByPointer : Token
+{
+}
 public class Token_BlockOpen : Token
 {
 }

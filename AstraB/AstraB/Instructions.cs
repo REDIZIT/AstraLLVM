@@ -130,6 +130,17 @@ public class SetValue_Instruction : Instruction
             sizeInBytes = sizeInBytes
         };
     }
+    
+    public static SetValue_Instruction Variable_to_Pointer(ScopeRelativeRbpOffset targetRbpOffset, ScopeRelativeRbpOffset valueRbpOffset, int sizeInBytes)
+    {
+        return new SetValue_Instruction()
+        {
+            mode = 3,
+            targetRbpOffset = targetRbpOffset,
+            valueRbpOffset = valueRbpOffset,
+            sizeInBytes = sizeInBytes
+        };
+    }
 
     public override void Encode(InstructionEncoder encoder)
     {
@@ -151,6 +162,11 @@ public class SetValue_Instruction : Instruction
         else if (mode == 2)
         {
             // Variable's pointer to variable
+            encoder.Add(valueRbpOffset);
+        }
+        else if (mode == 3)
+        {
+            // Variable value to pointer
             encoder.Add(valueRbpOffset);
         }
         else
