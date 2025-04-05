@@ -15,7 +15,13 @@ MyFunction()
     print(number)
     
     number = 77
+    
+    ptr pointer
+    pointer = number to ptr
+    
+    set_int(pointer, 11)
 
+    print_ptr(pointer)
     print(number)
 }
 

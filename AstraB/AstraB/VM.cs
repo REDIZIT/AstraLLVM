@@ -1,4 +1,5 @@
-﻿using AVM;
+﻿using System.Reflection;
+using AVM;
 
 public class VM
 {
@@ -6,9 +7,20 @@ public class VM
 
     private int current;
 
-    private Memory stack, heap;
+    public Memory stack, heap;
     private int stackPointer, basePointer;
     private int heapPointer;
+
+    private VMFunctions functions;
+
+    public VM()
+    {
+        functions = new()
+        {
+            vm = this
+        };
+        functions.BakeMethods();
+    }
     
     public void Run(CompiledModule module)
     {
@@ -147,49 +159,26 @@ public class VM
     {
         int inModuleIndex = NextInt();
 
-        if (inModuleIndex == 0)
-        {
-            int argumentRbpOffset = stackPointer - sizeof(int) * 1;
-            int value = ReadValueInt(argumentRbpOffset);
+        int fakeBasePointer = stackPointer;
+        
+        MethodInfo methodInfo = functions.GetMethod(inModuleIndex);
+        ParameterInfo[] methodParams = methodInfo.GetParameters();
             
-            Print(value);
+        object[] arguments = new object[methodParams.Length];
+        int totalArgumentsSize = 0;
+        
+        for (int i = arguments.Length - 1; i >= 0; i--)
+        {
+            totalArgumentsSize -= 4;
+            int rbpOffset = fakeBasePointer + totalArgumentsSize;
+            int value = stack.ReadInt(rbpOffset);
+            arguments[i] = value;
         }
-        else if (inModuleIndex == 1)
-        {
-            int pointer = ReadValueInt(basePointer + sizeof(int));
-            int value = ReadValueInt(basePointer + sizeof(int) + sizeof(int));
-            
-            heap.WriteInt(pointer, value);
-            
-            Console.WriteLine($"Write at {pointer}, value = {value}");
-        }
-        else if (inModuleIndex == 2)
-        {
-            int pointer = ReadValueInt(basePointer + sizeof(int));
-            int value = heap.ReadInt(pointer);
 
-            int returnPointer = ReadValueInt(basePointer - sizeof(int));
-            
-            Console.WriteLine($"Get value at {pointer} ({basePointer + sizeof(int)}), value = {value}, returnPointer at {returnPointer} ({basePointer - sizeof(int)})");
-        }
-        else if (inModuleIndex == 3)
-        {
-            int argumentRbpOffset = basePointer - sizeof(int) * 2;
-            int value = ReadValueInt(argumentRbpOffset);
-            
-            Print(value);
-        }
-        else
-        {
-            throw new Exception($"Unknown external function with inModuleIndex = {inModuleIndex}");
-        }
+        methodInfo.Invoke(functions, arguments);
     }
 
-
-    private void Print(int number)
-    {
-        Console.WriteLine(number);
-    }
+    
     
 
     private int NextInt()
@@ -215,7 +204,7 @@ public class VM
         return bytes;
     }
     
-    private int ReadValueInt(int stackAddress)
+    public int ReadValueInt(int stackAddress)
     {
         int pointer = stack.ReadInt(stackAddress);
         return heap.ReadInt(pointer);
