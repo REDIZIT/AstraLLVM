@@ -161,7 +161,7 @@ public class Node_VariableAssign : Node
 public class Node_Binary : Node
 {
     public Node left, right;
-    public Token_Operator tokenOperator;
+    public Token op;
 
     public override IEnumerable<Node> EnumerateChildren()
     {
@@ -178,5 +178,15 @@ public class Node_CastTo : Node
     public override IEnumerable<Node> EnumerateChildren()
     {
         yield return valueToCast;
+    }
+}
+
+public class Node_Grouping : Node
+{
+    public Node body;
+
+    public override IEnumerable<Node> EnumerateChildren()
+    {
+        yield return body;
     }
 }

@@ -187,21 +187,41 @@
 
     private static Node Math()
     {
-        Node left = ConstantNumber();
+        return Equality();
+    }
 
-        if (Check<Token_AddSub>())
+    private static Node BinaryOperator(Func<Node> leftLayer, Type[] tokenTypes)
+    {
+        Node left = leftLayer();
+
+        while (Match(tokenTypes, out Token t))
         {
-            Token_Operator tokenOperator = Consume<Token_AddSub>();
-
-            return new Node_Binary()
+            left = new Node_Binary()
             {
                 left = left,
-                right = ConstantNumber(),
-                tokenOperator = tokenOperator
+                op = t,
+                right = Comprassion()
             };
         }
 
         return left;
+    }
+
+    private static Node Equality()
+    {
+        return BinaryOperator(Comprassion, new [] { typeof(Token_Equality) });
+    }
+    private static Node Comprassion()
+    {
+        return BinaryOperator(AddSub, new[] { typeof(Token_Comprassion) });
+    }
+    private static Node AddSub()
+    {
+        return BinaryOperator(MulDiv, new[] { typeof(Token_Plus), typeof(Token_Minus) });
+    }
+    private static Node MulDiv()
+    {
+        return BinaryOperator(ConstantNumber, new[] { typeof(Token_Star), typeof(Token_Slash) });
     }
 
     private static Node ConstantNumber()
@@ -225,6 +245,21 @@
             };
         }
 
+        return Grouping();
+    }
+
+    private static Node Grouping()
+    {
+        if (Match<Token_BracketOpen>())
+        {
+            Node expr = Math();
+            Consume(typeof(Token_BracketClose), "Expect ')' after expression.");
+            return new Node_Grouping()
+            {
+                body = expr
+            };
+        }
+        
         return Unexpected();
     }
 
@@ -293,6 +328,10 @@
     
     
     
+    private static bool Match<T>() where T : Token
+    {
+        return Match<T>(out _);
+    }
     private static bool Match<T>(out T token) where T : Token
     {
         if (Check(typeof(T), true))
@@ -300,16 +339,32 @@
             token = (T)Advance();
             return true;
         }
+        
         token = null;
         return false;
     }
-    private static bool Match(Type tokenType)
+    private static bool Match(Type tokenType, out Token token)
     {
         if (Check(tokenType, true))
         {
-            Advance();
+            token = Advance();
             return true;
         }
+
+        token = null;
+        return false;
+    }
+    private static bool Match(Type[] tokenTypes, out Token token)
+    {
+        foreach (Type tokenType in tokenTypes)
+        {
+            if (Match(tokenType, out token))
+            {
+                return true;
+            }
+        }
+
+        token = null;
         return false;
     }
 

@@ -68,6 +68,9 @@
             case Node_CastTo cast:
                 Cast(cast);
                 break;
+            case Node_Grouping grouping:
+                Grouping(grouping);
+                break;
             default:
                 throw new Exception($"Failed to generate due to unexpected node '{node}'");
         }
@@ -78,6 +81,12 @@
         ident.result = currentScope.GetVariable(ident.name);
     }
 
+    private static void Grouping(Node_Grouping grouping)
+    {
+        Generate(grouping.body);
+        grouping.result = grouping.body.result;
+    }
+    
     private static void Constant(Node_ConstantNumber constant)
     {
         constant.result = AllocateVariable(constant.typeName, NextTempName());
@@ -89,10 +98,24 @@
         Generate(node.left);
         Generate(node.right);
         
-        TypeInfo resultType = module.GetType(node.tokenOperator.ResultType);
+        TypeInfo resultType = module.GetType("int");
         node.result = AllocateVariable(resultType.name, NextTempName());
+
+        MathOperator op = GetMathOperator(node.op);
         
-        Add(new Math_Instruction(node.left.result.rbpOffset, node.right.result.rbpOffset, node.result.rbpOffset));
+        Add(new Math_Instruction(node.left.result.rbpOffset, node.right.result.rbpOffset, node.result.rbpOffset, op));
+    }
+
+    private static MathOperator GetMathOperator(Token token)
+    {
+        switch (token)
+        {
+            case Token_Plus: return MathOperator.Add;
+            case Token_Minus: return MathOperator.Sub;
+            case Token_Star: return MathOperator.Mul;
+            case Token_Slash: return MathOperator.Div;
+            default: throw new Exception($"Token '{token}' is not a math operator");
+        }
     }
 
     private static void Cast(Node_CastTo node)

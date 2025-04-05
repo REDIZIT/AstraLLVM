@@ -10,24 +10,9 @@ Array<T> { }
 
 MyFunction()
 {
-    int a = 1
-    int b = 2
-    int c = 3
-    int d = 4
-    
-    ptr pointer = a to ptr
-    pointer ~= 11
-    
-    pointer = b to ptr
-    pointer ~= 22
-    
-    pointer = pointer + 8
-    pointer ~= 33
+    int a = (9 + 1 - 3) * 2
 
     print(a)
-    print(b)
-    print(c)
-    print(d)
 }
 
 """;

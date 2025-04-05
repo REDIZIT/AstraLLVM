@@ -85,14 +85,27 @@ public class VM
 
     private void Math()
     {
-        int mode = NextInt();
+        MathOperator op = (MathOperator)NextByte();
         int resultAddress = NextAddress();
         int aAddress = NextAddress();
         int bAddress = NextAddress();
 
         int aValue = heap.ReadInt(aAddress);
         int bValue = heap.ReadInt(bAddress);
-        heap.WriteInt(resultAddress, aValue + bValue);
+        
+        heap.WriteInt(resultAddress, Math_Int(op, aValue, bValue));
+    }
+    
+    private int Math_Int(MathOperator op, int a, int b)
+    {
+        switch (op)
+        {
+            case MathOperator.Add: return a + b;
+            case MathOperator.Sub: return a - b;
+            case MathOperator.Mul: return a * b;
+            case MathOperator.Div: return a / b;
+            default: throw new NotImplementedException();
+        }
     }
 
     private void VariableSetValue()
@@ -194,6 +207,12 @@ public class VM
     private int NextInt()
     {
         return BitConverter.ToInt32(NextRange(4));
+    }
+    private byte NextByte()
+    {
+        byte value = module.code[current];
+        current++;
+        return value;
     }
 
     private ScopeRelativeRbpOffset NextRBP()

@@ -69,18 +69,20 @@ public class Math_Instruction : Instruction
 {
     public int leftRbpOffset, rightRbpOffset;
     public int resultRbpOffset;
+    public MathOperator op;
     
-    public Math_Instruction(int leftRbpOffset, int rightRbpOffset, int resultRbpOffset)
+    public Math_Instruction(int leftRbpOffset, int rightRbpOffset, int resultRbpOffset, MathOperator op)
     {
         this.leftRbpOffset = leftRbpOffset;
         this.rightRbpOffset = rightRbpOffset;
         this.resultRbpOffset = resultRbpOffset;
+        this.op = op;
     }
 
     public override void Encode(InstructionEncoder encoder)
     {
         encoder.Add(OpCode.Math);
-        encoder.Add((int)0);
+        encoder.Add((byte)op);
         encoder.Add(resultRbpOffset);
         encoder.Add(leftRbpOffset);
         encoder.Add(rightRbpOffset);
