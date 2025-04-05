@@ -81,7 +81,26 @@
 
     private static Node InFunctionDeclaration()
     {
-        return VariableDeclaration();
+        return VariableAssignment();
+    }
+    
+    private static Node VariableAssignment()
+    {
+        Node left = VariableDeclaration();
+        
+        if (Check<Token_Assign>())
+        {
+            Consume<Token_Assign>();
+            Node right = VariableDeclaration();
+
+            return new Node_VariableAssign()
+            {
+                left = left,
+                value = right
+            };
+        }
+
+        return left;
     }
     
     private static Node VariableDeclaration()
@@ -101,26 +120,7 @@
             };
         }
 
-        return VariableAssignment();
-    }
-
-    private static Node VariableAssignment()
-    {
-        Node left = FunctionCall();
-        
-        if (Check<Token_Assign>())
-        {
-            Consume<Token_Assign>();
-            Node right = FunctionCall();
-
-            return new Node_VariableAssign()
-            {
-                left = left,
-                value = right
-            };
-        }
-
-        return left;
+        return FunctionCall();
     }
 
     private static Node FunctionCall()

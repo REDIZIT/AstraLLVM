@@ -10,19 +10,21 @@ Array<T> { }
 
 MyFunction()
 {
-    int number
-    number = 66
+    int number = 66
     print(number)
     
     number = 77
     
-    ptr pointer
-    pointer = number to ptr
+    ptr pointer = number to ptr
     
     set_int(pointer, 11)
 
     print_ptr(pointer)
     print(number)
+    
+    
+    int anotherNumber = 47
+    print(anotherNumber)
 }
 
 """;

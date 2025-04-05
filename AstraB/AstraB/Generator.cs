@@ -158,32 +158,12 @@
 
     private static void VariableAssignment(Node_VariableAssign node)
     {
-        if (node.left is Node_Identifier ident)
-        {
-            StaticVariable variable = currentScope.GetVariable(ident.name);
-
-            Generate(node.value);
+        Generate(node.left);
+        StaticVariable variable = node.left.result;
+        
+        Generate(node.value);
             
-            SetValue_Var_Var(variable, node.value.result);
-            
-            // if (node.value is Node_ConstantNumber constant)
-            // {
-            //     SetValue_Var_Const(variable, constant.value);
-            // }
-            // else if (node.value is Node_Identifier valueVariableIdent)
-            // {
-            //     StaticVariable valueVariable = staticVariableByName[valueVariableIdent.name];
-            //     SetValue_Var_Var(variable, valueVariable);
-            // }
-            // else if (node.value is Node_Binary binary)
-            // {
-            //     Binary();
-            // }
-            // else
-            // {
-            //     throw new Exception($"Unknown value node type {node} inside {nameof(VariableAssignment)}");
-            // }
-        }
+        SetValue_Var_Var(variable, node.value.result);
     }
 
     private static void SetValue_Var_Var(StaticVariable dest, StaticVariable value)
