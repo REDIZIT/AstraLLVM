@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using System.Runtime.InteropServices;
 using AVM;
 
 public class VM
@@ -150,6 +151,17 @@ public class VM
             
             heap.Copy(value, pointer, (byte)sizeInBytes);
         }
+        else if (mode == 4)
+        {
+            // GetValue_ByPointer
+            StackAddress valueVariable = NextAddress();
+            HeapAddress pointerHeapAddress = new(stack.ReadInt(valueVariable));
+            int pointer = heap.ReadInt(pointerHeapAddress);
+
+            int value = heap.ReadInt(pointer);
+            
+            heap.WriteInt(destHeapAddress, value);
+        }
         else
         {
             throw new Exception($"Invalid variable set value mode ({mode})");
@@ -193,15 +205,27 @@ public class VM
         for (int i = arguments.Length - 1; i >= 0; i--)
         {
             totalArgumentsSize -= 4;
-            int rbpOffset = fakeBasePointer + totalArgumentsSize;
+            StackAddress rbpOffset = new(fakeBasePointer + totalArgumentsSize);
             int value = stack.ReadInt(rbpOffset);
-            arguments[i] = value;
+
+            Type parameterType = methodParams[i].ParameterType;
+
+            unsafe
+            {
+                fixed (byte* result = &stack.GetArray(rbpOffset)[rbpOffset])
+                {
+                    arguments[i] = Marshal.PtrToStructure(new IntPtr(result), parameterType);
+                }
+            }
         }
 
         methodInfo.Invoke(functions, arguments);
     }
 
-    
+    private static unsafe T UnsafeCast<T, R>(R input) where T : unmanaged where R : unmanaged
+    {
+        return *(T*)&input;
+    }
     
 
     private int NextInt()

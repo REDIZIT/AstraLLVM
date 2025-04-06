@@ -100,6 +100,9 @@ public class SetValue_Instruction : Instruction
     {
     }
 
+    /// <summary>
+    /// Copy value from value variable to target variable
+    /// </summary>
     public static SetValue_Instruction Variable_to_Variable(ScopeRelativeRbpOffset targetRbpOffset, ScopeRelativeRbpOffset valueRbpOffset, int sizeInBytes)
     {
         return new SetValue_Instruction()
@@ -111,6 +114,9 @@ public class SetValue_Instruction : Instruction
         };
     }
 
+    /// <summary>
+    /// Copy value from constant value to target variable
+    /// </summary>
     public static SetValue_Instruction Const_to_Variable(ScopeRelativeRbpOffset targetRbpOffset, byte[] constant)
     {
         return new SetValue_Instruction()
@@ -122,7 +128,10 @@ public class SetValue_Instruction : Instruction
         };
     }
     
-    public static SetValue_Instruction Pointer_to_Variable(ScopeRelativeRbpOffset targetRbpOffset, ScopeRelativeRbpOffset valueRbpOffset, int sizeInBytes)
+    /// <summary>
+    /// Get pointer (ptr type) of value variable and put it into target variable
+    /// </summary>
+    public static SetValue_Instruction GetPointer_To_Variable(ScopeRelativeRbpOffset targetRbpOffset, ScopeRelativeRbpOffset valueRbpOffset, int sizeInBytes)
     {
         return new SetValue_Instruction()
         {
@@ -133,7 +142,10 @@ public class SetValue_Instruction : Instruction
         };
     }
     
-    public static SetValue_Instruction Variable_to_Pointer(ScopeRelativeRbpOffset targetRbpOffset, ScopeRelativeRbpOffset valueRbpOffset, int sizeInBytes)
+    /// <summary>
+    /// Set value of target variable (ptr type) from value variable
+    /// </summary>
+    public static SetValue_Instruction SetValue_ByPointer(ScopeRelativeRbpOffset targetRbpOffset, ScopeRelativeRbpOffset valueRbpOffset, int sizeInBytes)
     {
         return new SetValue_Instruction()
         {
@@ -144,6 +156,20 @@ public class SetValue_Instruction : Instruction
         };
     }
 
+    /// <summary>
+    /// Get value of value variable variable (ptr type) and put it into target variable 
+    /// </summary>
+    public static SetValue_Instruction GetValue_ByPointer(ScopeRelativeRbpOffset resultRbpOffset, ScopeRelativeRbpOffset pointerRbpOffset, int sizeInBytes)
+    {
+        return new SetValue_Instruction()
+        {
+            mode = 4,
+            targetRbpOffset = resultRbpOffset,
+            valueRbpOffset = pointerRbpOffset,
+            sizeInBytes = sizeInBytes
+        };
+    }
+    
     public override void Encode(InstructionEncoder encoder)
     {
         encoder.Add(OpCode.Variable_SetValue);
@@ -151,29 +177,13 @@ public class SetValue_Instruction : Instruction
         encoder.Add(sizeInBytes);
         encoder.Add(targetRbpOffset);
         
-        if (mode == 0)
+        if (mode == 1)
         {
-            // Variable to variable
-            encoder.Add(valueRbpOffset);
-        }
-        else if (mode == 1)
-        {
-            // Variable to variable
             encoder.AddRange(constant, sizeInBytes);
-        }
-        else if (mode == 2)
-        {
-            // Variable's pointer to variable
-            encoder.Add(valueRbpOffset);
-        }
-        else if (mode == 3)
-        {
-            // Variable value to pointer
-            encoder.Add(valueRbpOffset);
         }
         else
         {
-            throw new NotSupportedException();
+            encoder.Add(valueRbpOffset);
         }
     }
 }

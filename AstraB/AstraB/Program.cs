@@ -10,9 +10,17 @@ Array<T> { }
 
 MyFunction()
 {
-    int a = 10 / 2 - 1 * 2
+    int arr = 22
+    
+    ptr pointer = arr to ptr
+    
+    print_ptr(pointer)
+    print(pointer to int)
+    
+    pointer ~= 77
 
-    print(a)
+    print_ptr(pointer)
+    print(pointer to int)
 }
 
 """;

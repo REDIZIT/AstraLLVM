@@ -122,12 +122,18 @@
     {
         Generate(node.valueToCast);
 
+        ITypeInfo sourceType = node.valueToCast.result.type;
         TypeInfo targetType = module.GetType(node.typeName);
 
         if (targetType.name == "ptr")
         {
             node.result = AllocateVariable(targetType, NextTempName());
             SetValue_Var_Ptr(node.result, node.valueToCast.result);
+        }
+        else if (targetType.name == "int" && sourceType.Name == "ptr")
+        {
+            node.result = AllocateVariable(targetType, NextTempName());
+            GetValue_ByPointer(node.result, node.valueToCast.result);
         }
         else
         {
@@ -213,14 +219,21 @@
     {
         ScopeRelativeRbpOffset destOffset = currentScope.GetRelativeRBP(dest);
         ScopeRelativeRbpOffset valueOffset = currentScope.GetRelativeRBP(value);
-        Add(SetValue_Instruction.Pointer_to_Variable(destOffset, valueOffset, dest.sizeInBytes));
+        Add(SetValue_Instruction.GetPointer_To_Variable(destOffset, valueOffset, dest.sizeInBytes));
     }
     
     private static void SetValue_Var_To_Ptr(StaticVariable dest, StaticVariable value)
     {
         ScopeRelativeRbpOffset destOffset = currentScope.GetRelativeRBP(dest);
         ScopeRelativeRbpOffset valueOffset = currentScope.GetRelativeRBP(value);
-        Add(SetValue_Instruction.Variable_to_Pointer(destOffset, valueOffset, dest.sizeInBytes));
+        Add(SetValue_Instruction.SetValue_ByPointer(destOffset, valueOffset, dest.sizeInBytes));
+    }
+    
+    private static void GetValue_ByPointer(StaticVariable result, StaticVariable pointer)
+    {
+        ScopeRelativeRbpOffset resultOffset = currentScope.GetRelativeRBP(result);
+        ScopeRelativeRbpOffset pointerOffset = currentScope.GetRelativeRBP(pointer);
+        Add(SetValue_Instruction.GetValue_ByPointer(resultOffset, pointerOffset, result.sizeInBytes));
     }
 
     private static void FunctionCall(Node_FunctionCall node)

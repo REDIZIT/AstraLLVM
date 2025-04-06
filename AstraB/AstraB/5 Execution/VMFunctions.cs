@@ -50,10 +50,12 @@ public class VMFunctions
     }
 
     [Export]
-    public void Print_Ptr(int argumentRbpOffset)
+    public void Print_Ptr(HeapAddress pointerHeapAddress)
     {
-        int value = vm.ReadValueInt(argumentRbpOffset);
-        Print(value);
+        int pointer = vm.heap.ReadInt(pointerHeapAddress);
+        int value = vm.heap.ReadInt(pointer);
+        
+        Console.WriteLine($"<0x{pointer:x8}> = {value}");
     }
 }
 

@@ -104,6 +104,12 @@ public class Memory
         return chunk.Read(chunk.ToLocal(address), sizeInBytes);
     }
 
+    public byte[] GetArray(int address)
+    {
+        MemoryChunk chunk = GetChunk(address);
+        return chunk.bytes;
+    }
+
     // public void PushInt(int value)
     // {
     //     Push(BitConverter.GetBytes(value));
