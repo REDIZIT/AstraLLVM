@@ -200,7 +200,7 @@
             {
                 left = left,
                 op = t,
-                right = Comprassion()
+                right = leftLayer()
             };
         }
 

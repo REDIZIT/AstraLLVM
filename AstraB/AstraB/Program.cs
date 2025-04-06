@@ -10,7 +10,7 @@ Array<T> { }
 
 MyFunction()
 {
-    int a = (9 + 1 - 3) * 2
+    int a = 10 / 2 - 1 * 2
 
     print(a)
 }
