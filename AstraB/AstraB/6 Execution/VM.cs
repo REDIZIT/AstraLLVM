@@ -130,15 +130,14 @@ public partial class VM
 
         ScopeRelativeRbpOffset destRbpOffset = NextRBP();
         StackAddress destStackAddress = ToAbs(destRbpOffset);
-        HeapAddress destHeapAddress = new HeapAddress(stack.ReadInt(destStackAddress));
+        HeapAddress destHeapAddress = stack.ReadInt(destStackAddress);
 
 
         if (mode == 0)
         {
             // Value
-            ScopeRelativeRbpOffset valueRbpOffset = NextRBP();
-            int valueStackAddress = ToAbs(valueRbpOffset);
-            int valueHeapAddress = stack.ReadInt(valueStackAddress);
+            StackAddress valueStackAddress = NextAddress();
+            HeapAddress valueHeapAddress = stack.ReadInt(valueStackAddress);
 
             heap.Copy(valueHeapAddress, destHeapAddress, (byte)sizeInBytes);
         }
@@ -152,8 +151,10 @@ public partial class VM
         {
             // Pointer
             // SetValue_Var_Ptr
-            int valueVariable = NextAddress();
-            heap.WriteInt(destHeapAddress, valueVariable);
+            StackAddress valueStackAddress = NextAddress();
+            HeapAddress valueHeapAddress = stack.ReadInt(valueStackAddress);
+            
+            heap.WriteInt(destHeapAddress, valueHeapAddress);
         }
         else if (mode == 3)
         {
@@ -190,6 +191,7 @@ public partial class VM
         int heapAddress = Allocate(sizeInBytes);
         
         stack.Write(stackAddress, BitConverter.GetBytes(heapAddress), noLogs: true);
+        stack.logger.Log_Allocate(stackAddress, sizeInBytes);
         stackPointer += sizeInBytes;
     }
 
@@ -197,9 +199,7 @@ public partial class VM
     {
         int heapAddress = heapPointer;
         
-        stack.logger.Log_Allocate(stackPointer, sizeInBytes);
         heap.logger.Log_Allocate(heapAddress, sizeInBytes);
-
         heapPointer += sizeInBytes;
 
         return heapAddress;

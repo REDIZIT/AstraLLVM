@@ -144,7 +144,7 @@
         if (targetType.name == "ptr")
         {
             node.result = AllocateVariable(targetType, NextTempName());
-            SetValue_Var_Ptr(node.result, node.valueToCast.result);
+            GetPointer_To_Variable(node.result, node.valueToCast.result);
         }
         else if (targetType.name == "int" && sourceType.Name == "ptr")
         {
@@ -241,7 +241,7 @@
         Add(SetValue_Instruction.Const_to_Variable(destOffset, value));
     }
     
-    private static void SetValue_Var_Ptr(StaticVariable dest, StaticVariable value)
+    private static void GetPointer_To_Variable(StaticVariable dest, StaticVariable value)
     {
         ScopeRelativeRbpOffset destOffset = currentScope.GetRelativeRBP(dest);
         ScopeRelativeRbpOffset valueOffset = currentScope.GetRelativeRBP(value);
