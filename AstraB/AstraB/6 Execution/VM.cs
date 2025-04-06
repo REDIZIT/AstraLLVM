@@ -61,36 +61,16 @@ public partial class VM
         switch (opCode)
         {
             case OpCode.Nop: return;
-            case OpCode.InternalCall:
-                InternalCall();
-                break;
-            case OpCode.ExternalCall:
-                ExternalCall();
-                break;
-            case OpCode.Allocate_Variable:
-                AllocateVariable();
-                break;
-            case OpCode.Variable_SetValue:
-                VariableSetValue();
-                break;
-            case OpCode.Math:
-                Math();
-                break;
-            case OpCode.BeginScope:
-                BeginScope();
-                break;
-            case OpCode.DropScope:
-                DropScope();
-                break;
-            case OpCode.Return:
-                Return();
-                break;
-            case OpCode.DeallocateStackBytes:
-                DeallocateStackBytes();
-                break;
-            case OpCode.Quit:
-                Quit();
-                break;
+            case OpCode.InternalCall: InternalCall(); break;
+            case OpCode.ExternalCall: ExternalCall(); break;
+            case OpCode.Allocate_Variable: AllocateVariable(); break;
+            case OpCode.Variable_SetValue: VariableSetValue(); break;
+            case OpCode.Math: Math(); break;
+            case OpCode.BeginScope: BeginScope(); break;
+            case OpCode.DropScope: DropScope(); break;
+            case OpCode.Return: Return(); break;
+            case OpCode.DeallocateStackBytes: DeallocateStackBytes(); break;
+            case OpCode.Quit: Quit(); break;
             default: throw new NotImplementedException($"There is no implementation for {opCode} opcode");
         }
     }

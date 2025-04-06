@@ -36,8 +36,24 @@ public class VMFunctions
     {
         int pointer = vm.heap.ReadInt(pointerHeapAddress.ToInt32());
         int value = vm.heap.ReadInt(pointer);
+
+        string hex = pointer.ToString("x8");
+
+        ConsoleColor prevColor = Console.ForegroundColor;
         
-        Console.WriteLine($"<0x{pointer:x8}> = {value}");
+        Console.Write("<");
+        Console.ForegroundColor = ConsoleColor.DarkGray;
+        Console.Write("0x");
+        
+        for (int i = 0; i < hex.Length; i++)
+        {
+            char digit = hex[i];
+            if (digit != '0') Console.ForegroundColor = prevColor;
+            
+            Console.Write(digit);
+        }
+        Console.ForegroundColor = prevColor;
+        Console.WriteLine($"> = {value}");
     }
 }
 

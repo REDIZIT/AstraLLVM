@@ -67,38 +67,17 @@
     {
         switch (node)
         {
-            case Node_FunctionDeclaration functionDeclaration:
-                FunctionDeclaration(functionDeclaration);
-                break;
-            case Node_FunctionCall call:
-                FunctionCall(call);
-                break;
-            case Node_VariableDeclaration variableDeclaration:
-                VariableDeclaration(variableDeclaration);
-                break;
-            case Node_VariableAssign variableAssignment:
-                VariableAssignment(variableAssignment);
-                break;
-            case Node_Binary binary:
-                Binary(binary);
-                break;
-            case Node_ConstantNumber constantNumber:
-                Constant(constantNumber);
-                break;
-            case Node_Identifier ident:
-                LoadVariable(ident);
-                break;
-            case Node_CastTo cast:
-                Cast(cast);
-                break;
-            case Node_Grouping grouping:
-                Grouping(grouping);
-                break;
-            case Node_Return ret:
-                Return(ret);
-                break;
-            default:
-                throw new Exception($"Failed to generate due to unexpected node '{node}'");
+            case Node_FunctionDeclaration functionDeclaration: FunctionDeclaration(functionDeclaration); break;
+            case Node_FunctionCall call: FunctionCall(call); break;
+            case Node_VariableDeclaration variableDeclaration: VariableDeclaration(variableDeclaration); break;
+            case Node_VariableAssign variableAssignment: VariableAssignment(variableAssignment); break;
+            case Node_Binary binary: Binary(binary); break;
+            case Node_ConstantNumber constantNumber: Constant(constantNumber); break;
+            case Node_Identifier ident: LoadVariable(ident); break;
+            case Node_CastTo cast: Cast(cast); break;
+            case Node_Grouping grouping: Grouping(grouping); break;
+            case Node_Return ret: Return(ret); break;
+            default: throw new Exception($"Failed to generate due to unexpected node '{node}'");
         }
     }
 
@@ -374,12 +353,14 @@
             // Here, we only write byte-code for pushing these arguments
             
             int pushedArgumentsSizeInBytes = 0;
+            List<StaticVariable> argumentVariables = new();
             
             for (int i = 0; i < info.parameters.Count; i++)
             {
                 Node argumentNode = node.passedArguments[i];
 
                 StaticVariable argumentVariable = AllocateVariable(argumentNode.result.type, NextTempName());
+                argumentVariables.Add(argumentVariable);
                 pushedArgumentsSizeInBytes += argumentVariable.sizeInBytes;
                 
                 SetValue_Var_Var(argumentVariable, argumentNode.result);
@@ -393,6 +374,11 @@
             // Here, we DO NOT DEALLOCATE variables, but bytes because
             // we DID NOT give any PROMISES/PROVIDED variables, but only write byte-code
             Add(new DeallocateStackBytes_Instruction(pushedArgumentsSizeInBytes));
+
+            foreach (StaticVariable argument in argumentVariables)
+            {
+                currentScope.UnregisterLocalVariable(argument);
+            }
         }
         else
         {

@@ -12,24 +12,8 @@ MyFunction()
 {
     int number = 22
     print(number)
-    test()
-}
-
-test()
-{
-    int another = 33
-    
-    ptr pointer = another to ptr
-    pointer ~= 77
-    
-    print_ptr(pointer)
-    
-    print(another)
-}
-
-onemore()
-{
-    print(77)
+    print(number)
+    print(number)
 }
 
 """;
@@ -44,7 +28,6 @@ onemore()
         AstChecker.CheckAndModify(ast);
 
         CompiledModule compiled = Generator.Generate(module);
-
         
         vm.Run(compiled);
     }
