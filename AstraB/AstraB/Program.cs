@@ -13,14 +13,12 @@ MyFunction()
     int number = 22
     print(number)
     test()
-    return
 }
 
 test()
 {
     int another = 33
     print(another)
-    return
 }
 
 onemore()
@@ -35,6 +33,8 @@ onemore()
         var ast = Parser.Parse(tokens);
 
         Module module = Resolver.Resolve(ast);
+        
+        AstChecker.CheckAndModify(ast);
 
         CompiledModule compiled = Generator.Generate(module);
 

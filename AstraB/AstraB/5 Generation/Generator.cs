@@ -285,6 +285,11 @@
     
     private static void FunctionDeclaration(Node_FunctionDeclaration node)
     {
+        // Register arguments and returns before creating function body subscope
+        // Registered arguments will have negative RBP offset due to body subscope and current scope are different
+
+        // We promise/provide named arguments inside function body
+        
         Stack<StaticVariable> pushedVariables = new();
 
         // if (node.functionInfo.isStatic == false)
@@ -361,9 +366,15 @@
                 }
             }
 
+            
+            // Collect info about pushed arguments and write byte-code for pushing
+            // This info is required to write byte-code for deallocation
+        
+            // Here, we DO NOT PROMISE/PROVIDE any arguments
+            // Here, we only write byte-code for pushing these arguments
+            
             int pushedArgumentsSizeInBytes = 0;
             
-            // Allocate (duplicate) arguments
             for (int i = 0; i < info.parameters.Count; i++)
             {
                 Node argumentNode = node.passedArguments[i];
@@ -374,8 +385,13 @@
                 SetValue_Var_Var(argumentVariable, argumentNode.result);
             }
             
+            
             Add(new FunctionCall_Instruction(info.inModuleIndex, info.module != module));
             
+            
+            // Write byte-code for deallocation of pushed arguments
+            // Here, we DO NOT DEALLOCATE variables, but bytes because
+            // we DID NOT give any PROMISES/PROVIDED variables, but only write byte-code
             Add(new DeallocateStackBytes_Instruction(pushedArgumentsSizeInBytes));
         }
         else
