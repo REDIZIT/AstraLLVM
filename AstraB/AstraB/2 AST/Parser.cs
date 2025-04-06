@@ -45,10 +45,25 @@
 
         Consume<Token_BracketOpen>();
         Consume<Token_BracketClose>();
+
+        SkipTerminators();
+
+        List<string> returns = new();
+        if (Check<Token_Minus>() && Check<Token_Comprassion>(offset: 1))
+        {
+            Consume<Token_Minus>();
+            Consume<Token_Comprassion>();
+
+            SkipTerminators();
+
+            Token_Identifier typeIdent = Consume<Token_Identifier>();
+            returns.Add(typeIdent.name);
+        }
         
         return new Node_FunctionDeclaration()
         {
             name = nameToken.name,
+            returns = returns,
             block = Block(InFunctionDeclaration)
         };
     }
@@ -130,6 +145,28 @@
                 concreteGenericTypes = concreteGenericTypes,
                 variableName = variableName.name
             };
+        }
+
+        return Return();
+    }
+
+    private static Node Return()
+    {
+        if (Check<Token_Return>())
+        {
+            Consume<Token_Return>();
+
+            if (Check<Token_Terminator>())
+            {
+                return new Node_Return();
+            }
+            else
+            {
+                return new Node_Return()
+                {
+                    value = FunctionCall()
+                };
+            }
         }
 
         return FunctionCall();

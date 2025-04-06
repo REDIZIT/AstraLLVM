@@ -26,7 +26,7 @@ public class VM
     public void Run(CompiledModule module)
     {
         this.module = module;
-        current = module.functionPointerByID[0];
+        current = 0;
 
         stack = new();
         heap = new();
@@ -68,8 +68,22 @@ public class VM
             case OpCode.Math: Math(); break;
             case OpCode.BeginScope: BeginScope(); break;
             case OpCode.DropScope: DropScope(); break;
+            case OpCode.Return: Return(); break;
+            case OpCode.DeallocateStackBytes: DeallocateStackBytes(); break;
+            case OpCode.Quit: Quit(); break;
             default: throw new NotImplementedException($"There is no implementation for {opCode} opcode");
         }
+    }
+
+    private void Quit()
+    {
+        current = int.MaxValue;
+    }
+    
+    private void Return()
+    {
+        int prevCurrent = PopInt();
+        current = prevCurrent;
     }
 
     private void BeginScope()
@@ -187,6 +201,9 @@ public class VM
         int inModuleIndex = NextInt();
 
         int pointer = module.functionPointerByID[inModuleIndex];
+        
+        PushInt(current);
+        
         current = pointer;
     }
 
@@ -222,9 +239,11 @@ public class VM
         methodInfo.Invoke(functions, arguments);
     }
 
-    private static unsafe T UnsafeCast<T, R>(R input) where T : unmanaged where R : unmanaged
+    private void DeallocateStackBytes()
     {
-        return *(T*)&input;
+        int bytesToDeallocate = NextInt();
+
+        stackPointer -= bytesToDeallocate;
     }
     
 

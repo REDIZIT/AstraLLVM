@@ -92,9 +92,17 @@
             {
                 name = functionNode.name,
                 node = functionNode,
-                parameters = new()
+                parameters = new(),
+                returns = new(),
             };
             module.Register(functionInfo);
+
+            functionNode.functionInfo = functionInfo;
+
+            foreach (string typeName in functionNode.returns)
+            {
+                functionInfo.returns.Add(new(module.GetType(typeName), String.Empty));
+            }
         }
 
         return module;

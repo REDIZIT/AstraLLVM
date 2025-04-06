@@ -13,15 +13,23 @@
         instructions = new();
         Generator.module = module;
         currentScope = new();
+        
+        //
+        // Generate entry point
+        //
+        Add(new FunctionCall_Instruction(0, false));
+        Add(new Quit_Instruction());
 
         //
         // Generate instructions
         //
         foreach (FunctionInfo function in module.functions)
         {
-            int pointer = compiled.code.Count;
+            int pointer = -1;
             int id = compiled.functionPointerByID.Count;
             compiled.functionPointerByID.Add(id, pointer);
+            
+            Add(new FunctionDeclaration_Instruction(function));
             
             Generate(function.node);
         }
@@ -32,7 +40,22 @@
         InstructionEncoder encoder = new();
         foreach (Instruction instruction in instructions)
         {
+            if (instruction is FunctionDeclaration_Instruction decl)
+            {
+                compiled.functionPointerByID[decl.functionInfo.inModuleIndex] = encoder.code.Count;
+            }
+
+            int a = encoder.code.Count;
             instruction.Encode(encoder);
+            int b = encoder.code.Count;
+
+            instruction.bytecodeRange = new()
+            {
+                begin = a,
+                end = b,
+                includeBegin = true,
+                includeEnd = false,
+            };
         }
 
         compiled.code = encoder.code;
@@ -71,9 +94,23 @@
             case Node_Grouping grouping:
                 Grouping(grouping);
                 break;
+            case Node_Return ret:
+                Return(ret);
+                break;
             default:
                 throw new Exception($"Failed to generate due to unexpected node '{node}'");
         }
+    }
+
+    private static void Return(Node_Return ret)
+    {
+        if (ret.value != null)
+        {
+            Generate(ret.value);
+            ret.result = ret.value.result;
+        }
+        
+        Add(new Return_Instruction());
     }
 
     private static void LoadVariable(Node_Identifier ident)
@@ -141,9 +178,19 @@
         }
     }
 
-    private static void FunctionDeclaration(Node_FunctionDeclaration node)
+    private static void BeginSubScope()
     {
-        Block(node.block);
+        // Prologue before sub scope creation
+        Add(new Scope_Instruction(true));
+        currentScope = currentScope.CreateSubScope();
+    }
+
+    private static void DropSubScope()
+    {
+        currentScope = currentScope.parent;
+        
+        // Epilogue after sub scope drop
+        Add(new Scope_Instruction(false));
     }
 
     private static void Block(Node_Block node)
@@ -235,6 +282,44 @@
         ScopeRelativeRbpOffset pointerOffset = currentScope.GetRelativeRBP(pointer);
         Add(SetValue_Instruction.GetValue_ByPointer(resultOffset, pointerOffset, result.sizeInBytes));
     }
+    
+    private static void FunctionDeclaration(Node_FunctionDeclaration node)
+    {
+        Stack<StaticVariable> pushedVariables = new();
+
+        // if (node.functionInfo.isStatic == false)
+        // {
+        //     StaticVariable pushedVariable = ctx.gen.currentScope.RegisterLocalVariable(PrimitiveTypes.PTR, "self");
+        //     pushedVariables.Push(pushedVariable);
+        // }
+        foreach (FieldInfo arg in node.functionInfo.parameters)
+        {
+            StaticVariable pushedVariable = currentScope.RegisterLocalVariable(arg.type, arg.name);
+            pushedVariables.Push(pushedVariable);
+        }
+
+
+        StaticVariable callPushed = currentScope.RegisterLocalVariable(module.GetType("ptr"), "call_pushed_instruction");
+        
+        // // Bind function before BeginSubScope due to: BeginSubScope will push rbp, so, we want to take it for function call
+        // ctx.gen.BindFunction(functionInfo);
+        
+        // Creating function body subscope (all arguments, returns genereted not in sub scope, but in current scope)
+        BeginSubScope();
+        
+        Block(node.block);
+        
+        DropSubScope();
+        
+        
+        // Delete our promises/provided named arguments, because they will not be accessable outside the function body
+        currentScope.UnregisterLocalVariable(callPushed);
+        foreach (StaticVariable var in pushedVariables)
+        {
+            currentScope.UnregisterLocalVariable(var);
+        }
+    }
+
 
     private static void FunctionCall(Node_FunctionCall node)
     {
@@ -263,11 +348,6 @@
             }
             
             
-            Add(new Debug_Instruction($"Allocate arguments to pass"));
-            
-            // Add(new Scope_Instruction(true));
-            // currentScope = currentScope.CreateSubScope();
-            
             // Generate arguments nodes
             for (int i = 0; i < info.parameters.Count; i++)
             {
@@ -280,6 +360,8 @@
                     throw new Exception($"Failed to generate function '{info.name}' due to invalid passed argument type. Expected '{paramInfo.type.name}' at argument with index {i}, but got '{argumentNode.result.type.Name}'");
                 }
             }
+
+            int pushedArgumentsSizeInBytes = 0;
             
             // Allocate (duplicate) arguments
             for (int i = 0; i < info.parameters.Count; i++)
@@ -287,19 +369,14 @@
                 Node argumentNode = node.passedArguments[i];
 
                 StaticVariable argumentVariable = AllocateVariable(argumentNode.result.type, NextTempName());
-                
-                Add(new Debug_Instruction($"Sus: copy from {currentScope.GetRelativeRBP(argumentNode.result)} to {currentScope.GetRelativeRBP(argumentVariable)}"));
+                pushedArgumentsSizeInBytes += argumentVariable.sizeInBytes;
                 
                 SetValue_Var_Var(argumentVariable, argumentNode.result);
             }
             
             Add(new FunctionCall_Instruction(info.inModuleIndex, info.module != module));
             
-            
-            Add(new Debug_Instruction($"Deallocate"));
-            
-            // currentScope = currentScope.parent;
-            // Add(new Scope_Instruction(false));
+            Add(new DeallocateStackBytes_Instruction(pushedArgumentsSizeInBytes));
         }
         else
         {
@@ -330,6 +407,9 @@ public enum OpCode : byte
     Math,
     BeginScope,
     DropScope,
+    Return,
+    DeallocateStackBytes,
+    Quit,
 }
 
 public class StaticVariable

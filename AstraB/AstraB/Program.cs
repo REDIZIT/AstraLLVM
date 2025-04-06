@@ -10,17 +10,22 @@ Array<T> { }
 
 MyFunction()
 {
-    int arr = 22
-    
-    ptr pointer = arr to ptr
-    
-    print_ptr(pointer)
-    print(pointer to int)
-    
-    pointer ~= 77
+    int number = 22
+    print(number)
+    test()
+    return
+}
 
-    print_ptr(pointer)
-    print(pointer to int)
+test()
+{
+    int another = 33
+    print(another)
+    return
+}
+
+onemore()
+{
+    print(77)
 }
 
 """;

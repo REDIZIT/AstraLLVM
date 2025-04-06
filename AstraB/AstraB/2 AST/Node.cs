@@ -37,7 +37,9 @@ public class Node_TypeDeclaration : Node
 public class Node_FunctionDeclaration : Node
 {
     public string name;
+    public List<string> returns;
     public Node_Block block;
+    public FunctionInfo functionInfo;
 
     public override IEnumerable<Node> EnumerateChildren()
     {
@@ -188,5 +190,15 @@ public class Node_Grouping : Node
     public override IEnumerable<Node> EnumerateChildren()
     {
         yield return body;
+    }
+}
+
+public class Node_Return : Node
+{
+    public Node value;
+
+    public override IEnumerable<Node> EnumerateChildren()
+    {
+        if (value != null) yield return value;
     }
 }

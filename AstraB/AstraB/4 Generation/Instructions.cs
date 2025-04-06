@@ -38,6 +38,8 @@
 
 public abstract class Instruction
 {
+    public Inverval bytecodeRange;
+    
     public abstract void Encode(InstructionEncoder encoder);
 }
 
@@ -62,6 +64,17 @@ public class AllocateVariable_Instruction : Instruction
     {
         this.staticVariable = staticVariable;
         return this;
+    }
+}
+
+public class DeallocateStackBytes_Instruction(int bytesToDeallocate) : Instruction
+{
+    public int bytesToDeallocate = bytesToDeallocate;
+
+    public override void Encode(InstructionEncoder encoder)
+    {
+        encoder.Add(OpCode.DeallocateStackBytes);
+        encoder.Add((int)bytesToDeallocate);
     }
 }
 
@@ -206,6 +219,11 @@ public class FunctionCall_Instruction : Instruction
     }
 }
 
+public class FunctionDeclaration_Instruction(FunctionInfo functionInfo) : Empty_Instruction
+{
+    public FunctionInfo functionInfo = functionInfo;
+}
+
 public class Scope_Instruction : Instruction
 {
     public bool isBeginning;
@@ -232,7 +250,7 @@ public class Empty_Instruction : Instruction
     }
 }
 
-public class Debug_Instruction : Instruction
+public class Debug_Instruction : Empty_Instruction
 {
     public string message;
     
@@ -241,12 +259,25 @@ public class Debug_Instruction : Instruction
         this.message = message;
     }
 
-    public override void Encode(InstructionEncoder encoder)
-    {
-    }
-
     public override string ToString()
     {
         return message;
+    }
+}
+
+public class Return_Instruction : Instruction
+{
+    public override void Encode(InstructionEncoder encoder)
+    {
+        encoder.Add(OpCode.DropScope);
+        encoder.Add(OpCode.Return);
+    }
+}
+
+public class Quit_Instruction : Instruction
+{
+    public override void Encode(InstructionEncoder encoder)
+    {
+        encoder.Add(OpCode.Quit);
     }
 }
