@@ -317,20 +317,6 @@
                 throw new Exception($"Failed to generate function '{info.name}' due to different count of passed ({node.passedArguments.Count}) and required ({info.parameters.Count}) arguments");
             }
 
-            // Generate placeholders for returns
-            if (info.returns != null)
-            {
-                if (info.returns.Count > 1)
-                {
-                    throw new NotSupportedException("Only 1 function return variable supported yet.");
-                }
-                else if (info.returns.Count == 1)
-                {
-                    FieldInfo retInfo = info.returns[0];
-                    node.result = AllocateVariable(retInfo.type, NextTempName());
-                }
-            }
-            
             
             // Generate arguments nodes
             for (int i = 0; i < info.parameters.Count; i++)
@@ -342,6 +328,21 @@
                 if (argumentNode.result.type != paramInfo.type)
                 {
                     throw new Exception($"Failed to generate function '{info.name}' due to invalid passed argument type. Expected '{paramInfo.type.name}' at argument with index {i}, but got '{argumentNode.result.type.Name}'");
+                }
+            }
+            
+            
+            // Generate placeholders for returns
+            if (info.returns != null)
+            {
+                if (info.returns.Count > 1)
+                {
+                    throw new NotSupportedException("Only 1 function return variable supported yet.");
+                }
+                else if (info.returns.Count == 1)
+                {
+                    FieldInfo retInfo = info.returns[0];
+                    node.result = AllocateVariable(retInfo.type, NextTempName());
                 }
             }
 

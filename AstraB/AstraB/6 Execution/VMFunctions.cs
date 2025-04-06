@@ -32,9 +32,9 @@ public class VMFunctions
     }
     
     [Export]
-    public void print_ptr(IntPtr pointerHeapAddress)
+    public void print_ptr(Ptr pointerHeapAddress)
     {
-        int pointer = vm.heap.ReadInt(pointerHeapAddress.ToInt32());
+        int pointer = vm.heap.ReadInt(pointerHeapAddress);
         int value = vm.heap.ReadInt(pointer);
 
         string hex = pointer.ToString("x8");
@@ -54,6 +54,15 @@ public class VMFunctions
         }
         Console.ForegroundColor = prevColor;
         Console.WriteLine($"> = {value}");
+    }
+
+    [Export]
+    public Ptr alloc(HeapAddress sizeInBytesHeapAddress)
+    {
+        int sizeInBytes = vm.heap.ReadInt(sizeInBytesHeapAddress);
+        int allocatedHeapAddress = vm.Allocate(sizeInBytes);
+
+        return new(allocatedHeapAddress);
     }
 }
 

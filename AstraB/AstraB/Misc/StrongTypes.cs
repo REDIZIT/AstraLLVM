@@ -57,3 +57,9 @@ public struct HeapAddress(int value)
         return value.ToString();
     }
 }
+
+public struct Ptr(int value)
+{
+    public int value = value;
+    public static implicit operator int(Ptr s) => s.value;
+}

@@ -186,14 +186,23 @@ public partial class VM
     {
         int sizeInBytes = NextInt();
 
-        int heapAddress = heapPointer;
-        stack.Write(stackPointer, BitConverter.GetBytes(heapAddress), noLogs: true);
+        int stackAddress = stackPointer; 
+        int heapAddress = Allocate(sizeInBytes);
+        
+        stack.Write(stackAddress, BitConverter.GetBytes(heapAddress), noLogs: true);
+        stackPointer += sizeInBytes;
+    }
 
+    public int Allocate(int sizeInBytes)
+    {
+        int heapAddress = heapPointer;
+        
         stack.logger.Log_Allocate(stackPointer, sizeInBytes);
         heap.logger.Log_Allocate(heapAddress, sizeInBytes);
 
         heapPointer += sizeInBytes;
-        stackPointer += sizeInBytes;
+
+        return heapAddress;
     }
 
     private void InternalCall()
@@ -221,9 +230,8 @@ public partial class VM
 
         for (int i = arguments.Length - 1; i >= 0; i--)
         {
-            totalArgumentsSize -= 4;
-            StackAddress rbpOffset = new(fakeBasePointer + totalArgumentsSize);
-            int value = stack.ReadInt(rbpOffset);
+            totalArgumentsSize += 4; // i's argument type size
+            StackAddress rbpOffset = new(fakeBasePointer - totalArgumentsSize);
 
             Type parameterType = methodParams[i].ParameterType;
 
@@ -236,7 +244,28 @@ public partial class VM
             }
         }
 
-        methodInfo.Invoke(functions, arguments);
+        object returnValue = methodInfo.Invoke(functions, arguments);
+
+        if (methodInfo.ReturnParameter.ParameterType != typeof(void))
+        {
+            totalArgumentsSize += 4; // ret type size
+            StackAddress retRbpOffset = new(fakeBasePointer - totalArgumentsSize);
+            HeapAddress retHeapAddress = new(stack.ReadInt(retRbpOffset));
+            
+            // https://stackoverflow.com/questions/4865104/convert-any-object-to-a-byte
+            var size = 4;
+            // Both managed and unmanaged buffers required.
+            var bytes = new byte[size];
+            var ptr = Marshal.AllocHGlobal(size);
+            // Copy object byte-to-byte to unmanaged memory.
+            Marshal.StructureToPtr(returnValue, ptr, false);
+            // Copy data from unmanaged memory to managed buffer.
+            Marshal.Copy(ptr, bytes, 0, size);
+            // Release unmanaged memory.
+            Marshal.FreeHGlobal(ptr);
+            
+            heap.Write(retHeapAddress, bytes);
+        }
     }
 
     private void DeallocateStackBytes()

@@ -12,8 +12,15 @@ MyFunction()
 {
     int number = 22
     print(number)
+    
+    ptr pointer = alloc(12)
     print(number)
+    print_ptr(pointer)
+    
+    pointer ~= 77
+    
     print(number)
+    print_ptr(pointer)
 }
 
 """;

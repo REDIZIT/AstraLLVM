@@ -45,6 +45,6 @@ public partial class VM
     {
         { nameof(Int32), "int" },
         { nameof(HeapAddress), "int" },
-        { nameof(IntPtr), "ptr" },
+        { nameof(Ptr), "ptr" },
     };
 }
