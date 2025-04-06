@@ -18,6 +18,12 @@ MyFunction()
 test()
 {
     int another = 33
+    
+    ptr pointer = another to ptr
+    pointer ~= 77
+    
+    print_ptr(pointer)
+    
     print(another)
 }
 
@@ -32,13 +38,14 @@ onemore()
 
         var ast = Parser.Parse(tokens);
 
-        Module module = Resolver.Resolve(ast);
+        VM vm = new();
+        Module module = Resolver.Resolve(ast, vm);
         
         AstChecker.CheckAndModify(ast);
 
         CompiledModule compiled = Generator.Generate(module);
 
-        VM vm = new();
+        
         vm.Run(compiled);
     }
 }

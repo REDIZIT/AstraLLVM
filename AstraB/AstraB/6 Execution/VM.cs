@@ -2,7 +2,7 @@
 using System.Runtime.InteropServices;
 using AVM;
 
-public class VM
+public partial class VM
 {
     private CompiledModule module;
 
@@ -22,7 +22,7 @@ public class VM
         };
         functions.BakeMethods();
     }
-    
+
     public void Run(CompiledModule module)
     {
         this.module = module;
@@ -32,7 +32,7 @@ public class VM
         heap = new();
         stackPointer = 0;
         basePointer = 0;
-        
+
 
         int opsDone = 0;
         int opsLimit = 1000;
@@ -49,9 +49,9 @@ public class VM
             OpCode opCode = (OpCode)module.code[current];
             ops.Add(opCode);
             current++;
-            
+
             Execute(opCode);
-            
+
             opsDone++;
         }
     }
@@ -61,16 +61,36 @@ public class VM
         switch (opCode)
         {
             case OpCode.Nop: return;
-            case OpCode.InternalCall: InternalCall(); break;
-            case OpCode.ExternalCall: ExternalCall(); break;
-            case OpCode.Allocate_Variable: AllocateVariable(); break;
-            case OpCode.Variable_SetValue: VariableSetValue(); break;
-            case OpCode.Math: Math(); break;
-            case OpCode.BeginScope: BeginScope(); break;
-            case OpCode.DropScope: DropScope(); break;
-            case OpCode.Return: Return(); break;
-            case OpCode.DeallocateStackBytes: DeallocateStackBytes(); break;
-            case OpCode.Quit: Quit(); break;
+            case OpCode.InternalCall:
+                InternalCall();
+                break;
+            case OpCode.ExternalCall:
+                ExternalCall();
+                break;
+            case OpCode.Allocate_Variable:
+                AllocateVariable();
+                break;
+            case OpCode.Variable_SetValue:
+                VariableSetValue();
+                break;
+            case OpCode.Math:
+                Math();
+                break;
+            case OpCode.BeginScope:
+                BeginScope();
+                break;
+            case OpCode.DropScope:
+                DropScope();
+                break;
+            case OpCode.Return:
+                Return();
+                break;
+            case OpCode.DeallocateStackBytes:
+                DeallocateStackBytes();
+                break;
+            case OpCode.Quit:
+                Quit();
+                break;
             default: throw new NotImplementedException($"There is no implementation for {opCode} opcode");
         }
     }
@@ -79,7 +99,7 @@ public class VM
     {
         current = int.MaxValue;
     }
-    
+
     private void Return()
     {
         int prevCurrent = PopInt();
@@ -91,7 +111,7 @@ public class VM
         PushInt(basePointer);
         basePointer = stackPointer;
     }
-    
+
     private void DropScope()
     {
         stackPointer = basePointer;
@@ -107,10 +127,10 @@ public class VM
 
         int aValue = heap.ReadInt(aAddress);
         int bValue = heap.ReadInt(bAddress);
-        
+
         heap.WriteInt(resultAddress, Math_Int(op, aValue, bValue));
     }
-    
+
     private int Math_Int(MathOperator op, int a, int b)
     {
         switch (op)
@@ -131,7 +151,7 @@ public class VM
         ScopeRelativeRbpOffset destRbpOffset = NextRBP();
         StackAddress destStackAddress = ToAbs(destRbpOffset);
         HeapAddress destHeapAddress = new HeapAddress(stack.ReadInt(destStackAddress));
-        
+
 
         if (mode == 0)
         {
@@ -139,7 +159,7 @@ public class VM
             ScopeRelativeRbpOffset valueRbpOffset = NextRBP();
             int valueStackAddress = ToAbs(valueRbpOffset);
             int valueHeapAddress = stack.ReadInt(valueStackAddress);
-            
+
             heap.Copy(valueHeapAddress, destHeapAddress, (byte)sizeInBytes);
         }
         else if (mode == 1)
@@ -160,9 +180,9 @@ public class VM
             // SetValue_Var_To_Ptr
             StackAddress valueVariable = NextAddress();
             int value = stack.ReadInt(valueVariable);
-            
+
             int pointer = heap.ReadInt(destHeapAddress);
-            
+
             heap.Copy(value, pointer, (byte)sizeInBytes);
         }
         else if (mode == 4)
@@ -173,7 +193,7 @@ public class VM
             int pointer = heap.ReadInt(pointerHeapAddress);
 
             int value = heap.ReadInt(pointer);
-            
+
             heap.WriteInt(destHeapAddress, value);
         }
         else
@@ -181,7 +201,7 @@ public class VM
             throw new Exception($"Invalid variable set value mode ({mode})");
         }
     }
-    
+
     private void AllocateVariable()
     {
         int sizeInBytes = NextInt();
@@ -191,19 +211,19 @@ public class VM
 
         stack.logger.Log_Allocate(stackPointer, sizeInBytes);
         heap.logger.Log_Allocate(heapAddress, sizeInBytes);
-        
+
         heapPointer += sizeInBytes;
         stackPointer += sizeInBytes;
     }
-    
+
     private void InternalCall()
     {
         int inModuleIndex = NextInt();
 
         int pointer = module.functionPointerByID[inModuleIndex];
-        
+
         PushInt(current);
-        
+
         current = pointer;
     }
 
@@ -212,13 +232,13 @@ public class VM
         int inModuleIndex = NextInt();
 
         int fakeBasePointer = stackPointer;
-        
+
         MethodInfo methodInfo = functions.GetMethod(inModuleIndex);
         ParameterInfo[] methodParams = methodInfo.GetParameters();
-            
+
         object[] arguments = new object[methodParams.Length];
         int totalArgumentsSize = 0;
-        
+
         for (int i = arguments.Length - 1; i >= 0; i--)
         {
             totalArgumentsSize -= 4;
@@ -245,12 +265,13 @@ public class VM
 
         stackPointer -= bytesToDeallocate;
     }
-    
+
 
     private int NextInt()
     {
         return BitConverter.ToInt32(NextRange(4));
     }
+
     private byte NextByte()
     {
         byte value = module.code[current];
@@ -280,13 +301,13 @@ public class VM
         current += count;
         return bytes;
     }
-    
+
     public int ReadValueInt(int stackAddress)
     {
         int pointer = stack.ReadInt(stackAddress);
         return heap.ReadInt(pointer);
     }
-    
+
     private void PushInt(int value)
     {
         stack.WriteInt(stackPointer, value);

@@ -1,10 +1,11 @@
-﻿using System.Reflection;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
 
+[SuppressMessage("ReSharper", "UnusedMember.Global")]
 public class VMFunctions
 {
     public VM vm;
-
-    private List<MethodInfo> methods = new();
+    public List<MethodInfo> methods = new();
     
     public void BakeMethods()
     {
@@ -13,7 +14,7 @@ public class VMFunctions
         {
             if (methodInfo.GetCustomAttribute<ExportAttribute>() == null) continue;
             
-            methods.Add(methodInfo);   
+            methods.Add(methodInfo);
         }
     }
     
@@ -23,36 +24,17 @@ public class VMFunctions
     }
     
     [Export]
-    public void Print(int heapAddress)
+    public void print(int heapAddress)
     {
         int number = vm.heap.ReadInt(heapAddress);
         
         Console.WriteLine(number);
     }
-
+    
     [Export]
-    public void B(int pointerAddress, int valueAddress)
+    public void print_ptr(IntPtr pointerHeapAddress)
     {
-        int value = vm.heap.ReadInt(valueAddress);
-        int targetAddress = vm.heap.ReadInt(pointerAddress);
-        
-        vm.heap.WriteInt(targetAddress, value);
-            
-        Console.WriteLine($"set_int at {targetAddress}, value at {valueAddress} = {value}");
-    }
-
-    [Export]
-    public void C(int pointer, int returnPointer)
-    {
-        int value = vm.heap.ReadInt(pointer);
-            
-        Console.WriteLine($"Get value at {pointer})");
-    }
-
-    [Export]
-    public void Print_Ptr(HeapAddress pointerHeapAddress)
-    {
-        int pointer = vm.heap.ReadInt(pointerHeapAddress);
+        int pointer = vm.heap.ReadInt(pointerHeapAddress.ToInt32());
         int value = vm.heap.ReadInt(pointer);
         
         Console.WriteLine($"<0x{pointer:x8}> = {value}");
