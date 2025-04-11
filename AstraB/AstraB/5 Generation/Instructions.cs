@@ -80,11 +80,11 @@ public class DeallocateStackBytes_Instruction(int bytesToDeallocate) : Instructi
 
 public class Math_Instruction : Instruction
 {
-    public int leftRbpOffset, rightRbpOffset;
-    public int resultRbpOffset;
+    public ScopeRelativeRbpOffset leftRbpOffset, rightRbpOffset;
+    public ScopeRelativeRbpOffset resultRbpOffset;
     public MathOperator op;
     
-    public Math_Instruction(int leftRbpOffset, int rightRbpOffset, int resultRbpOffset, MathOperator op)
+    public Math_Instruction(ScopeRelativeRbpOffset leftRbpOffset, ScopeRelativeRbpOffset rightRbpOffset, ScopeRelativeRbpOffset resultRbpOffset, MathOperator op)
     {
         this.leftRbpOffset = leftRbpOffset;
         this.rightRbpOffset = rightRbpOffset;

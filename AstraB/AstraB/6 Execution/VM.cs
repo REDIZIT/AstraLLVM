@@ -101,14 +101,20 @@ public partial class VM
     private void Math()
     {
         MathOperator op = (MathOperator)NextByte();
-        int resultAddress = NextAddress();
-        int aAddress = NextAddress();
-        int bAddress = NextAddress();
+        StackAddress resultAddress = NextAddress();
+        StackAddress aAddress = NextAddress();
+        StackAddress bAddress = NextAddress();
 
-        int aValue = heap.ReadInt(aAddress);
-        int bValue = heap.ReadInt(bAddress);
+        HeapAddress resultHeapAddress = stack.ReadInt(resultAddress);
+        HeapAddress aHeapAddress = stack.ReadInt(aAddress);
+        HeapAddress bHeapAddress = stack.ReadInt(bAddress);
 
-        heap.WriteInt(resultAddress, Math_Int(op, aValue, bValue));
+        int aValue = heap.ReadInt(aHeapAddress);
+        int bValue = heap.ReadInt(bHeapAddress);
+
+        int resultValue = Math_Int(op, aValue, bValue);
+        
+        heap.WriteInt(resultHeapAddress, resultValue);
     }
 
     private int Math_Int(MathOperator op, int a, int b)

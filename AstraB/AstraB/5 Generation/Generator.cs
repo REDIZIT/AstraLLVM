@@ -118,8 +118,12 @@
         node.result = AllocateVariable(resultType.name, NextTempName());
 
         MathOperator op = GetMathOperator(node.op);
+
+        ScopeRelativeRbpOffset leftOffset = currentScope.GetRelativeRBP(node.left.result);
+        ScopeRelativeRbpOffset rightOffset = currentScope.GetRelativeRBP(node.right.result);
+        ScopeRelativeRbpOffset resultOffset = currentScope.GetRelativeRBP(node.result);
         
-        Add(new Math_Instruction(node.left.result.rbpOffset, node.right.result.rbpOffset, node.result.rbpOffset, op));
+        Add(new Math_Instruction(leftOffset, rightOffset, resultOffset, op));
     }
 
     private static MathOperator GetMathOperator(Token token)

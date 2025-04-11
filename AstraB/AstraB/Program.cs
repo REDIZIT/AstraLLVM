@@ -14,21 +14,25 @@ MyFunction()
     Array<int> arr = pointer to Array<int>
     
     pointer ~= 77
-    get(pointer)
-    set(pointer, 123)
-    get(pointer)
+    set(pointer, 4, 123)
+    
+    get(pointer, 0)
+    get(pointer, 4)
 }
 
-set(ptr pointer, int value)
+set(ptr pointer, int index, int value)
 {
-    print_ptr(pointer)
+    ptr p = pointer + index
+    print_ptr(p)
     print(value)
-    pointer ~= value
+    p ~= value
 }
 
-get(ptr pointer)
+get(ptr pointer, int index)
 {
-    print_ptr(pointer)
+    ptr p = pointer + index
+    print_ptr(p)
+    
 }
 
 """;
