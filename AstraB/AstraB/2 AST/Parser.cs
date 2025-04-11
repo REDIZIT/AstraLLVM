@@ -125,7 +125,7 @@
         {
             Consume<Token_If>();
 
-            Node condition = FunctionCall();
+            Node condition = Cast();
             Node trueBranch = Block(InFunctionDeclaration);
             Node elseBranch = null!;
 
@@ -210,44 +210,12 @@
             {
                 return new Node_Return()
                 {
-                    value = FunctionCall()
+                    value = Cast()
                 };
             }
         }
 
-        return FunctionCall();
-    }
-
-    private static Node FunctionCall()
-    {
-        Node left = Cast();
-
-        if (Check<Token_BracketOpen>())
-        {
-            Consume<Token_BracketOpen>();
-
-            List<Node> passedArguments = new();
-            while (Check<Token_Identifier>() || Check<Token_Constant>())
-            {
-                Node passedArgument = Cast();
-                passedArguments.Add(passedArgument);
-
-                if (Check<Token_Comma>()) Consume<Token_Comma>();
-
-                SkipTerminators();
-            }
-            
-            
-            Consume<Token_BracketClose>();
-
-            return new Node_FunctionCall()
-            {
-                functionNode = left,
-                passedArguments = passedArguments
-            };
-        }
-
-        return left;
+        return Cast();
     }
 
     private static Node Cast()
@@ -331,7 +299,39 @@
     }
     private static Node MulDiv()
     {
-        return BinaryOperator(ConstantNumber, new[] { typeof(Token_Star), typeof(Token_Slash) });
+        return BinaryOperator(FunctionCall, new[] { typeof(Token_Star), typeof(Token_Slash) });
+    }
+    
+    private static Node FunctionCall()
+    {
+        Node left = ConstantNumber();
+
+        if (Check<Token_BracketOpen>())
+        {
+            Consume<Token_BracketOpen>();
+
+            List<Node> passedArguments = new();
+            while (Check<Token_Identifier>() || Check<Token_Constant>())
+            {
+                Node passedArgument = Cast();
+                passedArguments.Add(passedArgument);
+
+                if (Check<Token_Comma>()) Consume<Token_Comma>();
+
+                SkipTerminators();
+            }
+            
+            
+            Consume<Token_BracketClose>();
+
+            return new Node_FunctionCall()
+            {
+                functionNode = left,
+                passedArguments = passedArguments
+            };
+        }
+
+        return left;
     }
 
     private static Node ConstantNumber()
