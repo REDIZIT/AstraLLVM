@@ -34,6 +34,14 @@
         byte[] bytes = BitConverter.GetBytes(value);
         AddRange(bytes);
     }
+
+    public void Set(int index, byte[] value)
+    {
+        for (int i = 0; i < value.Length; i++)
+        {
+            code[index + i] = value[i];
+        }
+    }
 }
 
 public abstract class Instruction
@@ -279,5 +287,43 @@ public class Quit_Instruction : Instruction
     public override void Encode(InstructionEncoder encoder)
     {
         encoder.Add(OpCode.Quit);
+    }
+}
+
+public class If_Instruction(ScopeRelativeRbpOffset condition, AbsInstructionIndex elseJump) : Instruction
+{
+    public ScopeRelativeRbpOffset condition = condition;
+    public AbsInstructionIndex elseJump = elseJump;
+
+    public override void Encode(InstructionEncoder encoder)
+    {
+        encoder.Add(OpCode.If);
+        encoder.Add(condition);
+        encoder.Add(elseJump);
+    }
+
+    public void Recode(InstructionEncoder encoder, AbsByteCodeIndex thisBeginIndex, AbsByteCodeIndex byteCodeIndex)
+    {
+        int toSkip = sizeof(OpCode) + sizeof(int);
+        byte[] bytes = BitConverter.GetBytes((int)byteCodeIndex);
+        encoder.Set(thisBeginIndex + toSkip, bytes);
+    }
+}
+
+public class Jump_Instruction(AbsInstructionIndex index) : Instruction
+{
+    public AbsInstructionIndex index = index;
+
+    public override void Encode(InstructionEncoder encoder)
+    {
+        encoder.Add(OpCode.Jump);
+        encoder.Add(index);
+    }
+
+    public void Recode(InstructionEncoder encoder, AbsByteCodeIndex thisBeginIndex, AbsByteCodeIndex byteCodeIndex)
+    {
+        int toSkip = sizeof(OpCode);
+        byte[] bytes = BitConverter.GetBytes((int)byteCodeIndex);
+        encoder.Set(thisBeginIndex + toSkip, bytes);
     }
 }

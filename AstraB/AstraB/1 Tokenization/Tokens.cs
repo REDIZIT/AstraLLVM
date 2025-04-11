@@ -28,4 +28,9 @@ public enum MathOperator : byte
     Sub,
     Mul,
     Div,
+    Less,
+    LessOrEqual,
+    Equal,
+    Greater,
+    GreaterOrEqual
 }

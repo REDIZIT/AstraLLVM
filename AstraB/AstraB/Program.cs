@@ -11,12 +11,10 @@ Array<T> { }
 MyFunction()
 {
     ptr pointer = alloc(16)
-    pointer ~= 16
+    pointer ~= 3
     
     Array<int> arr = pointer to Array<int>
     get_len(pointer)
-    print_ptr(pointer)
-    
     
     set(pointer, 0, 11)
     set(pointer, 1, 22)
@@ -39,6 +37,12 @@ set(ptr pointer, int index, int value)
 get(ptr pointer, int index)
 {
     int len = get_len(pointer)
+    
+    if index >= len
+    {
+        panic()
+    }
+    
     ptr p = pointer + 4 + index * 4
     print_ptr(p)
 }

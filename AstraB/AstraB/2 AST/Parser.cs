@@ -114,6 +114,32 @@
 
     private static Node InFunctionDeclaration()
     {
+        return If();
+    }
+
+    private static Node If()
+    {
+        if (Check<Token_If>())
+        {
+            Consume<Token_If>();
+
+            Node condition = FunctionCall();
+            Node trueBranch = Block(InFunctionDeclaration);
+            Node elseBranch = null!;
+
+            if (Check<Token_Else>())
+            {
+                elseBranch = Block(InFunctionDeclaration);
+            }
+
+            return new Node_If()
+            {
+                condition = condition,
+                trueBranch = trueBranch,
+                elseBranch = elseBranch
+            };
+        }
+        
         return VariableAssignment();
     }
     

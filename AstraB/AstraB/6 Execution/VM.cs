@@ -62,7 +62,7 @@ public partial class VM
         {
             var prevColor = Console.ForegroundColor;
             Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine($"AVM panicked at {current} instruction and exited with {exitCode} code");
+            Console.WriteLine($"AVM panicked at {current} byte-code and exited with {exitCode} code");
             Console.ForegroundColor = prevColor;
         }
         current = module.code.Count;
@@ -83,7 +83,22 @@ public partial class VM
             case OpCode.Return: Return(); break;
             case OpCode.DeallocateStackBytes: DeallocateStackBytes(); break;
             case OpCode.Quit: StopExecution(0); break;
+            case OpCode.If: If(); break;
             default: throw new NotImplementedException($"There is no implementation for {opCode} opcode");
+        }
+    }
+
+    private void If()
+    {
+        StackAddress conditionStackAddress = NextAddress();
+        AbsInstructionIndex elseJump = new(NextInt());
+        
+        HeapAddress conditionHeapAddress = stack.ReadInt(conditionStackAddress);
+        int conditionValue = heap.ReadInt(conditionHeapAddress);
+
+        if (conditionValue == 0)
+        {
+            current = elseJump.index;
         }
     }
 
@@ -132,6 +147,11 @@ public partial class VM
             case MathOperator.Sub: return a - b;
             case MathOperator.Mul: return a * b;
             case MathOperator.Div: return a / b;
+            case MathOperator.Less: return a < b ? 1 : 0;
+            case MathOperator.LessOrEqual: return a <= b ? 1 : 0;
+            case MathOperator.Equal: return a == b ? 1 : 0;
+            case MathOperator.Greater: return a > b ? 1 : 0;
+            case MathOperator.GreaterOrEqual: return a >= b ? 1 : 0;
             default: throw new NotImplementedException();
         }
     }

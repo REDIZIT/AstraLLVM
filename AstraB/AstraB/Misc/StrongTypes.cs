@@ -55,3 +55,17 @@ public struct Ptr(int value)
     public int value = value;
     public static implicit operator int(Ptr s) => s.value;
 }
+
+public struct AbsInstructionIndex(int index)
+{
+    public readonly int index = index;
+    public static implicit operator int(AbsInstructionIndex s) => s.index;
+    public static AbsInstructionIndex Invalid => new AbsInstructionIndex(-1);
+}
+
+public struct AbsByteCodeIndex(int index)
+{
+    public readonly int index = index;
+    public static implicit operator int(AbsByteCodeIndex s) => s.index;
+    public static AbsByteCodeIndex Invalid => new AbsByteCodeIndex(-1);
+}

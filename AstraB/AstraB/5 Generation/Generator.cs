@@ -57,6 +57,31 @@
                 includeEnd = false,
             };
         }
+        
+        //
+        // Resolve byte-code indexes
+        //
+        foreach (Instruction instruction in instructions)
+        {
+            if (instruction is Jump_Instruction jump)
+            {
+                Instruction targetInstruction = instructions[jump.index];
+                
+                AbsByteCodeIndex jumpPlaceholderIndex = new(jump.bytecodeRange.begin);
+                AbsByteCodeIndex jumpTargetIndex = new(targetInstruction.bytecodeRange.begin);
+                
+                jump.Recode(encoder, jumpPlaceholderIndex, jumpTargetIndex);
+            }
+            else if (instruction is If_Instruction ifInstruction)
+            {
+                Instruction elseBranchInstruction = instructions[ifInstruction.elseJump];
+
+                AbsByteCodeIndex instructionBeginIndex = new(ifInstruction.bytecodeRange.begin);
+                AbsByteCodeIndex elseBranchBeginIndex = new(elseBranchInstruction.bytecodeRange.begin);
+
+                ifInstruction.Recode(encoder, instructionBeginIndex, elseBranchBeginIndex);
+            }
+        }
 
         compiled.code = encoder.code;
 
@@ -77,8 +102,41 @@
             case Node_CastTo cast: Cast(cast); break;
             case Node_Grouping grouping: Grouping(grouping); break;
             case Node_Return ret: Return(ret); break;
+            case Node_If nodeIf: If(nodeIf); break;
+            case Node_Block block: Block(block); break;
             default: throw new Exception($"Failed to generate due to unexpected node '{node}'");
         }
+    }
+
+    private static void If(Node_If node)
+    {
+        // Condition
+        Generate(node.condition);
+
+        ScopeRelativeRbpOffset condition = currentScope.GetRelativeRBP(node.condition.result);
+        If_Instruction ifInstruction = new If_Instruction(condition, AbsInstructionIndex.Invalid);
+        Add(ifInstruction);
+
+        // True branch
+        Generate(node.trueBranch);
+        Jump_Instruction trueBranchEndJump = new(new(AbsInstructionIndex.Invalid));
+        Add(trueBranchEndJump);
+
+        // Else branch
+        if (node.elseBranch != null)
+        {
+            ifInstruction.elseJump = GetCurrentInstructionIndex();
+            Generate(node.elseBranch);
+        }
+        else
+        {
+            AbsInstructionIndex trueBranchEnd = GetCurrentInstructionIndex();
+            ifInstruction.elseJump = trueBranchEnd;
+        }
+        
+        // End
+        AbsInstructionIndex end = GetCurrentInstructionIndex();
+        trueBranchEndJump.index = end;
     }
 
     private static void Return(Node_Return ret)
@@ -153,6 +211,16 @@
             case Token_Minus: return MathOperator.Sub;
             case Token_Star: return MathOperator.Mul;
             case Token_Slash: return MathOperator.Div;
+            case Token_Comprassion comprassion:
+                switch (comprassion.asmOperatorName)
+                {
+                    case "<": return MathOperator.Less;
+                    case "<=": return MathOperator.LessOrEqual;
+                    case "==": return MathOperator.Equal;
+                    case ">": return MathOperator.Greater;
+                    case ">=": return MathOperator.GreaterOrEqual;
+                    default: throw new Exception($"Token '{token}' is not a math operator");
+                }
             default: throw new Exception($"Token '{token}' is not a math operator");
         }
     }
@@ -429,6 +497,11 @@
         return "temp_" + tempNameIndex;
     }
 
+    private static AbsInstructionIndex GetCurrentInstructionIndex()
+    {
+        return new AbsInstructionIndex(instructions.Count);
+    }
+
     private static void Add(Instruction instruction)
     {
         instructions.Add(instruction);
@@ -449,6 +522,8 @@ public enum OpCode : byte
     Return,
     DeallocateStackBytes,
     Quit,
+    If,
+    Jump,
 }
 
 public class StaticVariable

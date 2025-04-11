@@ -203,3 +203,15 @@ public class Node_Return : Node
         if (value != null) yield return value;
     }
 }
+
+public class Node_If : Node
+{
+    public Node condition, trueBranch, elseBranch;
+
+    public override IEnumerable<Node> EnumerateChildren()
+    {
+        yield return condition;
+        yield return trueBranch;
+        if (elseBranch != null) yield return elseBranch;
+    }
+}
