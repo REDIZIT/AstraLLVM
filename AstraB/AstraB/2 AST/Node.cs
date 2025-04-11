@@ -38,6 +38,7 @@ public class Node_FunctionDeclaration : Node
 {
     public string name;
     public List<string> returns;
+    public List<RawFieldInfo> parameters;
     public Node_Block block;
     public FunctionInfo functionInfo;
 

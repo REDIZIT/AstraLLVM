@@ -139,14 +139,14 @@
         Generate(node.valueToCast);
 
         ITypeInfo sourceType = node.valueToCast.result.type;
-        TypeInfo targetType = module.GetType(node.typeName);
+        ITypeInfo targetType = module.GetBaseOrGenericType(node.typeName);
 
-        if (targetType.name == "ptr")
+        if (targetType.Name == "ptr")
         {
             node.result = AllocateVariable(targetType, NextTempName());
             GetPointer_To_Variable(node.result, node.valueToCast.result);
         }
-        else if (targetType.name == "int" && sourceType.Name == "ptr")
+        else if (sourceType.Name == "ptr")
         {
             node.result = AllocateVariable(targetType, NextTempName());
             GetValue_ByPointer(node.result, node.valueToCast.result);
@@ -206,7 +206,7 @@
     private static StaticVariable AllocateVariable(ITypeInfo type, string variableName)
     {
         StaticVariable variable = currentScope.RegisterLocalVariable(type, variableName);
-        Add(new AllocateVariable_Instruction(type.SizeInBytes).WithDebug(variable));
+        Add(new AllocateVariable_Instruction(type.RefSizeInBytes).WithDebug(variable));
 
         return variable;
     }
@@ -376,8 +376,9 @@
             // we DID NOT give any PROMISES/PROVIDED variables, but only write byte-code
             Add(new DeallocateStackBytes_Instruction(pushedArgumentsSizeInBytes));
 
-            foreach (StaticVariable argument in argumentVariables)
+            for (int i = argumentVariables.Count - 1; i >= 0; i--)
             {
+                StaticVariable argument = argumentVariables[i];
                 currentScope.UnregisterLocalVariable(argument);
             }
         }

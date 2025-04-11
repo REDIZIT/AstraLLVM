@@ -10,20 +10,25 @@ Array<T> { }
 
 MyFunction()
 {
-    ptr a = alloc(16)
-    print_ptr(a)
+    ptr pointer = alloc(16)
+    Array<int> arr = pointer to Array<int>
     
-    ptr b = alloc(16)
-    print_ptr(b)
+    pointer ~= 77
+    get(pointer)
+    set(pointer, 123)
+    get(pointer)
+}
 
-    
-    int number = 123
-    print(number)
-    
-    ptr c = number to ptr
-    print_ptr(c)
-    
-    print(number)
+set(ptr pointer, int value)
+{
+    print_ptr(pointer)
+    print(value)
+    pointer ~= value
+}
+
+get(ptr pointer)
+{
+    print_ptr(pointer)
 }
 
 """;

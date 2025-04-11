@@ -44,6 +44,24 @@
         Token_Identifier nameToken = Consume<Token_Identifier>();
 
         Consume<Token_BracketOpen>();
+
+        List<RawFieldInfo> parameters = new();
+        while (Check<Token_BracketClose>() == false)
+        {
+            Token_Identifier typeIdent = Consume<Token_Identifier>();
+            Token_Identifier nameIdent = Consume<Token_Identifier>();
+            
+            parameters.Add(new(typeIdent.name, nameIdent.name));
+
+            if (Check<Token_BracketClose>())
+            {
+                break;
+            }
+            else
+            {
+                Consume<Token_Comma>();
+            }
+        } 
         Consume<Token_BracketClose>();
 
         SkipTerminators();
@@ -64,6 +82,7 @@
         {
             name = nameToken.name,
             returns = returns,
+            parameters = parameters,
             block = Block(InFunctionDeclaration)
         };
     }
@@ -212,14 +231,41 @@
         {
             Consume<Token_CastTo>();
 
-            return new Node_CastTo()
+            if (TryGenericTypeName(out string genericTypeName))
             {
-                valueToCast = left,
-                typeName = Consume<Token_Identifier>().name
-            };
+                return new Node_CastTo()
+                {
+                    valueToCast = left,
+                    typeName = genericTypeName
+                };
+            }
+            else
+            {
+                Token_Identifier typeIdent = Consume<Token_Identifier>();
+                return new Node_CastTo()
+                {
+                    valueToCast = left,
+                    typeName = typeIdent.name
+                };
+            }
         }
 
         return left;
+    }
+
+    private static bool TryGenericTypeName(out string name)
+    {
+        if (Check<Token_Identifier>() && IsGenericBand(offset: 1))
+        {
+            Token_Identifier baseTypeName = Consume<Token_Identifier>();
+            List<Token_Identifier> concreteGenericTypeNames = TryParseGenericBand();
+
+            name = baseTypeName.name + "<" + string.Join(", ", concreteGenericTypeNames.Select(t => t.name)) + ">";
+            return true;
+        }
+
+        name = null;
+        return false;
     }
 
     private static Node Math()

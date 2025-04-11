@@ -98,6 +98,11 @@
             module.Register(functionInfo);
 
             functionNode.functionInfo = functionInfo;
+            
+            foreach (RawFieldInfo info in functionNode.parameters)
+            {
+                functionInfo.parameters.Add(new(module.GetType(info.typeName), info.fieldName));
+            }
 
             foreach (string typeName in functionNode.returns)
             {

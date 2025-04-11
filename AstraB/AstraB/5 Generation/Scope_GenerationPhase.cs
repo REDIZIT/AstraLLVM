@@ -37,7 +37,7 @@ public class Scope_GenerationPhase
         {
             name = name,
             rbpOffset = CurrentRbpOffset,
-            sizeInBytes = type.SizeInBytes,
+            sizeInBytes = type.RefSizeInBytes,
             type = type,
             scope = this
         };

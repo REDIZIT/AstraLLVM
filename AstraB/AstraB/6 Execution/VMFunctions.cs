@@ -35,7 +35,7 @@ public class VMFunctions
     public void print_ptr(Ptr pointerHeapAddress)
     {
         int pointer = vm.heap.ReadInt(pointerHeapAddress);
-        int value = vm.heap.ReadInt(pointer);
+        byte value = vm.heap.Read(pointer);
 
         string hex = pointer.ToString("x8");
 

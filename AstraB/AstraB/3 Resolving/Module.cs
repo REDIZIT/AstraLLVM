@@ -38,6 +38,13 @@
         genericTypesByBase[type.baseType].Add(type);
     }
 
+    public ITypeInfo GetBaseOrGenericType(string name)
+    {
+        if (TryGetType(name, out TypeInfo typeInfo))  return typeInfo;
+        if (TryGetGeneric(name, out GenericImplementationInfo genericInfo)) return genericInfo;
+        throw new Exception($"No base or generic type '{name}' not found in module or module's usings");
+    }
+
     public TypeInfo GetType(string name)
     {
         if (TryGetType(name, out TypeInfo info)) return info;
@@ -79,6 +86,12 @@
         info = null;
         return false;
     }
+
+    public bool TryGetGeneric(string name, out GenericImplementationInfo info)
+    {
+        ParseGenericType(name, out TypeInfo baseType, out List<TypeInfo> concreteTypes);
+        return TryGetGeneric(baseType, concreteTypes, out info);
+    }
     public bool TryGetGeneric(TypeInfo baseType, IEnumerable<TypeInfo> concreteTypes, out GenericImplementationInfo info)
     {
         info = null;
@@ -110,6 +123,21 @@
         }
 
         return false;
+    }
+
+    public void ParseGenericType(string name, out TypeInfo baseType, out List<TypeInfo> concreteTypes)
+    {
+        baseType = GetType(name.Split("<")[0]);
+
+        int beginIndex = name.IndexOf("<") + 1;
+        int endIndex = name.IndexOf(">");
+        
+        string[] split = name.Substring(beginIndex , endIndex - beginIndex).Replace(" ", "").Split(",");
+        concreteTypes = new();
+        foreach (string splitName in split)
+        {
+            concreteTypes.Add(GetType(splitName));
+        }
     }
 }
 
@@ -201,4 +229,9 @@ public class FieldInfo
         this.type = type;
         this.name = name;
     }
+}
+
+public class RawFieldInfo(string typeName, string fieldName)
+{
+    public string typeName = typeName, fieldName = fieldName;
 }
