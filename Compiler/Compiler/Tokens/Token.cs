@@ -2,10 +2,14 @@
 
 public abstract class Token
 {
+    public int begin, end;
+    public int line, endLine;
+    public int linedBegin;
+    public char[] chars;
 }
-public class Token_Constant : Token
+public class Token_Constant(string value) : Token
 {
-    public string value;
+    public string value = value;
 
     public override string ToString()
     {
@@ -106,5 +110,31 @@ public class Token_SquareBracketClose : Token
 }
 
 public class Token_CastTo : Token
+{
+}
+
+public class Token_Space : Token
+{
+}
+
+public class Token_EOF : Token
+{
+}
+
+public class Token_Bad : Token
+{
+}
+
+public class Token_Char(char character) : Token
+{
+    public char character = character;
+}
+
+public class Token_String(string str) : Token
+{
+    public string str = str;
+}
+
+public class Token_Comment : Token
 {
 }

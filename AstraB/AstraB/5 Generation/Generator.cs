@@ -211,16 +211,10 @@
             case Token_Minus: return MathOperator.Sub;
             case Token_Star: return MathOperator.Mul;
             case Token_Slash: return MathOperator.Div;
-            case Token_Comprassion comprassion:
-                switch (comprassion.asmOperatorName)
-                {
-                    case "<": return MathOperator.Less;
-                    case "<=": return MathOperator.LessOrEqual;
-                    case "==": return MathOperator.Equal;
-                    case ">": return MathOperator.Greater;
-                    case ">=": return MathOperator.GreaterOrEqual;
-                    default: throw new Exception($"Token '{token}' is not a math operator");
-                }
+            case Token_Less: return MathOperator.Less;
+            case Token_LessOrEqual: return MathOperator.LessOrEqual;
+            case Token_Greater: return MathOperator.Greater;
+            case Token_GreaterOrEqual: return MathOperator.GreaterOrEqual;
             default: throw new Exception($"Token '{token}' is not a math operator");
         }
     }

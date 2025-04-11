@@ -70,8 +70,9 @@ test() -> int
 }
 
 """;
-        
-        var tokens = Tokenizer.Tokenize(exampleCode);
+
+        Lexer lexer = new();
+        var tokens = lexer.Tokenize(exampleCode, includeSpacesAndEOF: false);
 
         var ast = Parser.Parse(tokens);
 

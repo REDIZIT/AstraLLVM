@@ -60,10 +60,7 @@
                 {
                     if (int.TryParse(word, out int _))
                     {
-                        tokens.Add(new Token_Constant()
-                        {
-                            value = word
-                        });
+                        tokens.Add(new Token_Constant(word));
                     }
                     word = "";
                 }

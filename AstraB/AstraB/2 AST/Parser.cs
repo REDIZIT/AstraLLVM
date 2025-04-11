@@ -11,6 +11,8 @@
         root = new Node_Root();
         Parser.tokens = tokens;
 
+        SkipTerminators();
+
         while (IsAtEnd() == false)
         {
             root.children.Add(Declaration());
@@ -24,7 +26,7 @@
     {
         if (Check<Token_Identifier>())
         {
-            if (Check<Token_BlockOpen>(offset: 1) || Check<Token_Comprassion>(offset: 1))
+            if (Check<Token_BlockOpen>(offset: 1) || Check<Token_Less>(offset: 1))
             {
                 return TypeDeclaration();
             }
@@ -66,10 +68,10 @@
         SkipTerminators();
 
         List<string> returns = new();
-        if (Check<Token_Minus>() && Check<Token_Comprassion>(offset: 1))
+        if (Check<Token_Minus>() && Check<Token_Greater>(offset: 1))
         {
             Consume<Token_Minus>();
-            Consume<Token_Comprassion>();
+            Consume<Token_Greater>();
 
             SkipTerminators();
 
@@ -104,7 +106,7 @@
 
     private static Node InTypeDeclaration()
     {
-        if ((Check<Token_Identifier>() && Check<Token_Identifier>(offset: 1)) || (Check<Token_Identifier>() && Check<Token_Comprassion>(offset: 1)))
+        if ((Check<Token_Identifier>() && Check<Token_Identifier>(offset: 1)) || (Check<Token_Identifier>() && Check<Token_Less>(offset: 1)))
         {
             return FieldDeclaration();
         }
@@ -321,7 +323,7 @@
     }
     private static Node Comprassion()
     {
-        return BinaryOperator(AddSub, new[] { typeof(Token_Comprassion) });
+        return BinaryOperator(AddSub, new[] { typeof(Token_Less), typeof(Token_LessOrEqual), typeof(Token_Greater), typeof(Token_GreaterOrEqual) });
     }
     private static Node AddSub()
     {
@@ -336,7 +338,7 @@
     {
         if (Check<Token_Constant>())
         {
-            string value = Consume<Token_Constant>().value;
+            string value = Consume<Token_Constant>().word;
             return new Node_ConstantNumber(value);
         }
         
@@ -395,7 +397,7 @@
 
     private static bool IsGenericBand(int offset = 0)
     {
-        return Check<Token_Comprassion>(offset: offset) && Peek<Token_Comprassion>(offset: offset).asmOperatorName == "<";
+        return Check<Token_Less>(offset: offset);
     }
     private static List<Token_Identifier> TryParseGenericBand()
     {
@@ -403,12 +405,12 @@
         
         if (IsGenericBand())
         {
-            Consume<Token_Comprassion>();
+            Consume<Token_Less>();
             
             Token_Identifier ident = Consume<Token_Identifier>();
             idents.Add(ident);
             
-            Consume<Token_Comprassion>();
+            Consume<Token_Greater>();
         }
 
         return idents;
@@ -533,7 +535,7 @@
         if (Check(awaitingTokenType, skipTerminators)) return Advance();
 
         Token gotToken = Peek();
-        throw new Exception(errorMessage);
+        throw new Exception($"Awaited {awaitingTokenType}, but got {gotToken}: errorMessage");
     }
 
     private static bool SkipTerminators()
