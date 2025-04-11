@@ -228,28 +228,33 @@
     private static Node Cast()
     {
         Node left = Math();
-
+        
         if (Check<Token_CastTo>())
         {
-            Consume<Token_CastTo>();
+            while (Check<Token_CastTo>())
+            {
+                Consume<Token_CastTo>();
 
-            if (TryGenericTypeName(out string genericTypeName))
-            {
-                return new Node_CastTo()
+                if (TryGenericTypeName(out string genericTypeName))
                 {
-                    valueToCast = left,
-                    typeName = genericTypeName
-                };
-            }
-            else
-            {
-                Token_Identifier typeIdent = Consume<Token_Identifier>();
-                return new Node_CastTo()
+                    left = new Node_CastTo()
+                    {
+                        valueToCast = left,
+                        typeName = genericTypeName
+                    };
+                }
+                else
                 {
-                    valueToCast = left,
-                    typeName = typeIdent.name
-                };
+                    Token_Identifier typeIdent = Consume<Token_Identifier>();
+                    left = new Node_CastTo()
+                    {
+                        valueToCast = left,
+                        typeName = typeIdent.name
+                    };
+                }
             }
+
+            return left;
         }
 
         return left;

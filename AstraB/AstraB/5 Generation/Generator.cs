@@ -428,9 +428,27 @@
                 Node argumentNode = node.passedArguments[i];
 
                 Generate(argumentNode);
-                if (argumentNode.result.type != paramInfo.type)
+
+                ITypeInfo argType = argumentNode.result.type;
+                TypeInfo paramType = paramInfo.type;
+
+                if (paramType.IsGeneric)
                 {
-                    throw new Exception($"Failed to generate function '{info.name}' due to invalid passed argument type. Expected '{paramInfo.type.name}' at argument with index {i}, but got '{argumentNode.result.type.Name}'");
+                    if (argType is GenericImplementationInfo argGenericType)
+                    {
+                        if (argGenericType.baseType != paramType)
+                        {
+                            throw new Exception($"Failed to generate function '{info.name}' due to invalid passed argument type. Expected generic '{paramType.name}' at argument with index {i}, but got generic '{argType.Name}' with another base type '{argGenericType.baseType.Name}'");
+                        }
+                    }
+                    else
+                    {
+                        throw new Exception($"Failed to generate function '{info.name}' due to invalid passed argument type. Expected generic '{paramType.name}' at argument with index {i}, but got non-generic '{argType.Name}'");
+                    }
+                }
+                else if (argType != paramType)
+                {
+                    throw new Exception($"Failed to generate function '{info.name}' due to invalid passed argument type. Expected '{paramType.name}' at argument with index {i}, but got '{argType.Name}'");
                 }
             }
             
