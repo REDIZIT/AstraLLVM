@@ -83,13 +83,32 @@
 
     private static void Return(Node_Return ret)
     {
-        if (ret.value != null)
-        {
-            Generate(ret.value);
-            ret.result = ret.value.result;
-        }
+        FunctionInfo function = currentScope.functionNode.functionInfo;
+
+        if (function.returns.Count > 0 && ret.value == null)
+            throw new BadAstraCode($"Function '{function.name}' returns {function.returns.Count} values, but there is a return keyword, that returns nothing");
         
-        Add(new Return_Instruction());
+        if (function.returns.Count == 0 && ret.value != null)
+            throw new BadAstraCode($"Function '{function.name}' returns nothing, but there is a return keyword, that returns a value");
+        
+        if (function.returns.Count > 1)
+            throw new NotSupportedAstraFeature($"Function '{function.name}' returns more than 1 value, but this feature is not supported yet");
+
+        if (function.returns.Count == 0)
+        {
+            // Return nothing
+            Add(new Return_Instruction());
+        }
+        else
+        {
+            // Return 1 value
+            
+            Generate(ret.value);
+            StaticVariable outVariable = currentScope.functionNode.result;
+            SetValue_Var_Var(outVariable, ret.value.result);
+            
+            Add(new Return_Instruction());
+        }
     }
 
     private static void LoadVariable(Node_Identifier ident)
@@ -272,14 +291,25 @@
         // Registered arguments will have negative RBP offset due to body subscope and current scope are different
 
         // We promise/provide named arguments inside function body
-        
-        Stack<StaticVariable> pushedVariables = new();
 
+        Stack<StaticVariable> pushedVariables = new();
+        
+        // Promise returns
+        foreach (FieldInfo ret in node.functionInfo.returns)
+        {
+            StaticVariable pushedVariable = currentScope.RegisterLocalVariable(ret.type, ret.name);
+            pushedVariables.Push(pushedVariable);
+            node.result = pushedVariable;
+        }
+
+        
         // if (node.functionInfo.isStatic == false)
         // {
         //     StaticVariable pushedVariable = ctx.gen.currentScope.RegisterLocalVariable(PrimitiveTypes.PTR, "self");
         //     pushedVariables.Push(pushedVariable);
         // }
+        
+        // Promise arguments
         foreach (FieldInfo arg in node.functionInfo.parameters)
         {
             StaticVariable pushedVariable = currentScope.RegisterLocalVariable(arg.type, arg.name);
@@ -294,6 +324,7 @@
         
         // Creating function body subscope (all arguments, returns genereted not in sub scope, but in current scope)
         BeginSubScope();
+        currentScope.functionNode = node;
         
         Block(node.block);
         

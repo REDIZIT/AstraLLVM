@@ -64,6 +64,12 @@ public class VMFunctions
 
         return new(allocatedHeapAddress);
     }
+
+    [Export]
+    public void panic()
+    {
+        vm.StopExecution(-1);
+    }
 }
 
 public class ExportAttribute : Attribute

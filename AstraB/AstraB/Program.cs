@@ -11,28 +11,58 @@ Array<T> { }
 MyFunction()
 {
     ptr pointer = alloc(16)
-    Array<int> arr = pointer to Array<int>
+    pointer ~= 16
     
-    pointer ~= 77
-    set(pointer, 4, 123)
+    Array<int> arr = pointer to Array<int>
+    get_len(pointer)
+    print_ptr(pointer)
+    
+    
+    set(pointer, 0, 11)
+    set(pointer, 1, 22)
     
     get(pointer, 0)
+    get(pointer, 1)
+    get(pointer, 2)
+    get(pointer, 3)
     get(pointer, 4)
+    get(pointer, 5)
+    get(pointer, 6)
+    get(pointer, 7)
 }
 
 set(ptr pointer, int index, int value)
 {
-    ptr p = pointer + index
-    print_ptr(p)
-    print(value)
-    p ~= value
+    pointer + 4 + index * 4 ~= value
 }
 
 get(ptr pointer, int index)
 {
-    ptr p = pointer + index
+    int len = get_len(pointer)
+    ptr p = pointer + 4 + index * 4
     print_ptr(p)
-    
+}
+
+get_len(ptr pointer) -> int
+{
+    int len = pointer to int
+    return len
+}
+
+""";
+
+
+        string anotherExample = """
+
+main()
+{
+    int value = test()
+    print(value)
+}
+
+test() -> int
+{
+    return 234
 }
 
 """;

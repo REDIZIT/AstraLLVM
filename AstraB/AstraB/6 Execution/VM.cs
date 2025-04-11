@@ -11,7 +11,7 @@ public partial class VM
     public Memory stack, heap;
     private int stackPointer, basePointer;
     private int heapPointer;
-
+    
     private VMFunctions functions;
 
     public VM()
@@ -56,6 +56,18 @@ public partial class VM
         }
     }
 
+    public void StopExecution(int exitCode)
+    {
+        if (exitCode != 0)
+        {
+            var prevColor = Console.ForegroundColor;
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine($"AVM panicked at {current} instruction and exited with {exitCode} code");
+            Console.ForegroundColor = prevColor;
+        }
+        current = module.code.Count;
+    }
+
     private void Execute(OpCode opCode)
     {
         switch (opCode)
@@ -70,14 +82,9 @@ public partial class VM
             case OpCode.DropScope: DropScope(); break;
             case OpCode.Return: Return(); break;
             case OpCode.DeallocateStackBytes: DeallocateStackBytes(); break;
-            case OpCode.Quit: Quit(); break;
+            case OpCode.Quit: StopExecution(0); break;
             default: throw new NotImplementedException($"There is no implementation for {opCode} opcode");
         }
-    }
-
-    private void Quit()
-    {
-        current = int.MaxValue;
     }
 
     private void Return()

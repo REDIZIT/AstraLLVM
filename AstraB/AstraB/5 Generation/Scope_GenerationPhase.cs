@@ -3,6 +3,7 @@ using Astra.Compilation;
 public class Scope_GenerationPhase
 {
     // public Scope_StaticAnalysis staticScope;
+    public Node_FunctionDeclaration functionNode;
     
     public Dictionary<string, StaticVariable> variableByName = new();
     public Stack<StaticVariable> variableStack = new();
@@ -27,6 +28,7 @@ public class Scope_GenerationPhase
         Scope_GenerationPhase child = new();
         child.parent = this;
         child.uniqueGenerator = uniqueGenerator;
+        child.functionNode = functionNode;
 
         return child;
     }
