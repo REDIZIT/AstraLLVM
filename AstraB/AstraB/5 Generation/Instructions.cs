@@ -232,14 +232,9 @@ public class FunctionDeclaration_Instruction(FunctionInfo functionInfo) : Empty_
     public FunctionInfo functionInfo = functionInfo;
 }
 
-public class Scope_Instruction : Instruction
+public class Scope_Instruction(bool isBeginning) : Instruction
 {
-    public bool isBeginning;
-
-    public Scope_Instruction(bool isBeginning)
-    {
-        this.isBeginning = isBeginning;
-    }
+    public bool isBeginning = isBeginning;
 
     public override void Encode(InstructionEncoder encoder)
     {

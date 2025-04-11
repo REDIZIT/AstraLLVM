@@ -9,6 +9,8 @@
     {
         current = 0;
         root = new Node_Root();
+
+        tokens.RemoveAll(t => t is Token_Comment);
         Parser.tokens = tokens;
 
         SkipTerminators();
@@ -126,12 +128,17 @@
             Consume<Token_If>();
 
             Node condition = Cast();
-            Node trueBranch = Block(InFunctionDeclaration);
+
+            Node trueBranch;
+            if (Check<Token_BlockOpen>()) trueBranch = Block(InFunctionDeclaration);
+            else trueBranch = Cast();
+            
             Node elseBranch = null!;
 
             if (Check<Token_Else>())
             {
-                elseBranch = Block(InFunctionDeclaration);
+                if (Check<Token_BlockOpen>(offset: 1)) elseBranch = Block(InFunctionDeclaration);
+                else elseBranch = Cast();
             }
 
             return new Node_If()

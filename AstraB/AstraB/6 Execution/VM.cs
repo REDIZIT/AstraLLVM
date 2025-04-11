@@ -84,8 +84,16 @@ public partial class VM
             case OpCode.DeallocateStackBytes: DeallocateStackBytes(); break;
             case OpCode.Quit: StopExecution(0); break;
             case OpCode.If: If(); break;
+            case OpCode.Jump: Jump(); break;
             default: throw new NotImplementedException($"There is no implementation for {opCode} opcode");
         }
+    }
+
+    private void Jump()
+    {
+        AbsInstructionIndex index = new(NextInt());
+        if (index <= 0) throw new Exception($"Invalid jump instruction index = {index.index}");
+        current = index;
     }
 
     private void If()
@@ -110,14 +118,17 @@ public partial class VM
 
     private void BeginScope()
     {
+        // Console.WriteLine($"Begin: RBP = {basePointer}, RSP = {stackPointer}");
         PushInt(basePointer);
         basePointer = stackPointer;
     }
 
     private void DropScope()
     {
+        // int freed = stackPointer;
         stackPointer = basePointer;
         basePointer = PopInt();
+        // Console.WriteLine($"End: RBP = {basePointer}, RSP = {stackPointer} (freed: {freed})");
     }
 
     private void Math()

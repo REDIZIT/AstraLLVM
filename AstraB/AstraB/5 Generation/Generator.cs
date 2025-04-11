@@ -117,11 +117,18 @@
         If_Instruction ifInstruction = new If_Instruction(condition, AbsInstructionIndex.Invalid);
         Add(ifInstruction);
 
+        
         // True branch
+        BeginSubScope();
         Generate(node.trueBranch);
+        DropSubScope();
+        
         Jump_Instruction trueBranchEndJump = new(new(AbsInstructionIndex.Invalid));
         Add(trueBranchEndJump);
+        
+        
 
+        
         // Else branch
         if (node.elseBranch != null)
         {
@@ -251,10 +258,9 @@
 
     private static void DropSubScope()
     {
-        currentScope = currentScope.parent;
-        
         // Epilogue after sub scope drop
         Add(new Scope_Instruction(false));
+        currentScope = currentScope.parent;
     }
 
     private static void Block(Node_Block node)

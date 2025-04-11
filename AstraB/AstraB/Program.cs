@@ -18,6 +18,7 @@ MyFunction()
     set(pointer, 0, 11)
     set(pointer, 1, 22)
     set(pointer, 2, 33)
+    --set(pointer, 3, 44)
     
     get(pointer, 0)
     get(pointer, 1)
@@ -38,19 +39,14 @@ alloc_arr(int length) -> ptr
 
 set(ptr pointer, int index, int value)
 {
-    if index >= get_len(pointer)
-    {
-        panic()
-    }
+    if index >= get_len(pointer) panic()
     pointer + 4 + index * 4 ~= value
 }
 
 get(ptr pointer, int index)
 {
-    if index >= get_len(pointer)
-    {
+    if index >= get_len(pointer) 
         panic()
-    }
     
     ptr p = pointer + 4 + index * 4
     print_ptr(p)
@@ -69,13 +65,20 @@ get_len(ptr pointer) -> int
 
 main()
 {
-    int value = test()
+    int value = 234
     print(value)
-}
-
-test() -> int
-{
-    return 234
+    
+    if value > 1
+    {
+        int a
+        int b
+        print(11)
+        print(22)
+    }
+    
+    int anotherValue = 77
+    print(value)
+    print(anotherValue)
 }
 
 """;
