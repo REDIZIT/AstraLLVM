@@ -229,27 +229,31 @@
     {
         Node left = Math();
         
-        if (Check<Token_CastTo>())
+        if (Check<Token_To>() || Check<Token_As>())
         {
-            while (Check<Token_CastTo>())
+            while (Check<Token_To>() || Check<Token_As>())
             {
-                Consume<Token_CastTo>();
+                bool isToCast = Check<Token_To>();
+                if (isToCast) Consume<Token_To>();
+                else Consume<Token_As>();
 
                 if (TryGenericTypeName(out string genericTypeName))
                 {
-                    left = new Node_CastTo()
+                    left = new Node_Cast()
                     {
                         valueToCast = left,
-                        typeName = genericTypeName
+                        typeName = genericTypeName,
+                        isToCast = isToCast
                     };
                 }
                 else
                 {
                     Token_Identifier typeIdent = Consume<Token_Identifier>();
-                    left = new Node_CastTo()
+                    left = new Node_Cast()
                     {
                         valueToCast = left,
-                        typeName = typeIdent.name
+                        typeName = typeIdent.name,
+                        isToCast = isToCast
                     };
                 }
             }

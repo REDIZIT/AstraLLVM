@@ -10,17 +10,18 @@ Array<T> { }
 
 MyFunction()
 {
-    ptr pointer = alloc_arr(3)
+    ptr pointer = alloc_arr(4)
     
-    Array<int> arr = pointer to Array<int>
+    Array<int> arr = pointer
     
-    print(get_len(arr))
-    print(arr.get_len())
+
+    arr.set(0, 11)
+    arr.set(1, 22)
+    arr.set(2, 33)
+    --set3, 44)
     
-    set(pointer, 0, 11)
-    set(pointer, 1, 22)
-    set(pointer, 2, 33)
-    --set(pointer, 3, 44)
+    --arr.set(0, 77)
+    --arr.set(1, 88)
     
     get(pointer, 0)
     get(pointer, 1)
@@ -39,8 +40,9 @@ alloc_arr(int length) -> ptr
     return pointer
 }
 
-set(ptr pointer, int index, int value)
+set(Array self, int index, int value)
 {
+    ptr pointer = self
     pointer + 4 + index * 4 ~= value
 }
 

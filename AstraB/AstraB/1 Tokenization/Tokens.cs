@@ -107,7 +107,7 @@ public class Token_BlockClose : Token
 {
 }
 
-public class Token_CastTo : Token {}
+public class Token_To : Token {}
 public class Token_Assign : Token {}
 public class Token_Equality : Token {}
 // public class Token_Comprassion : Token {}

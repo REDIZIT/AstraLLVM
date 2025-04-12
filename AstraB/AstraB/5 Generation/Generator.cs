@@ -99,7 +99,7 @@
             case Node_Binary binary: Binary(binary); break;
             case Node_ConstantNumber constantNumber: Constant(constantNumber); break;
             case Node_Identifier ident: LoadVariable(ident); break;
-            case Node_CastTo cast: Cast(cast); break;
+            case Node_Cast cast: Cast(cast); break;
             case Node_Grouping grouping: Grouping(grouping); break;
             case Node_Return ret: Return(ret); break;
             case Node_If nodeIf: If(nodeIf); break;
@@ -252,22 +252,30 @@
         }
     }
 
-    private static void Cast(Node_CastTo node)
+    private static void Cast(Node_Cast node)
     {
         Generate(node.valueToCast);
 
         ITypeInfo sourceType = node.valueToCast.result.type;
         ITypeInfo targetType = module.GetBaseOrGenericType(node.typeName);
 
+        node.result = AllocateVariable(targetType, NextTempName());
+        
         if (targetType.Name == "ptr")
         {
-            node.result = AllocateVariable(targetType, NextTempName());
             GetPointer_To_Variable(node.result, node.valueToCast.result);
         }
         else if (sourceType.Name == "ptr")
         {
-            node.result = AllocateVariable(targetType, NextTempName());
-            GetValue_ByPointer(node.result, node.valueToCast.result);
+            if (node.isToCast)
+            {
+                GetValue_ByPointer(node.result, node.valueToCast.result);
+            }
+            else
+            {
+                // TODO: Any sense?
+                SetValue_Var_Var(node.result, node.valueToCast.result);
+            }
         }
         else
         {
@@ -478,7 +486,7 @@
 
         if (info.parameters.Count != passedArguments.Count)
         {
-            throw new Exception($"Failed to generate function '{info.name}' due to different count of passed ({passedArguments.Count}) and required ({info.parameters.Count}) arguments");
+            throw new BadAstraCode($"Failed to generate function '{info.name}' due to different count of passed ({passedArguments.Count}) and required ({info.parameters.Count}) arguments");
         }
 
         
@@ -499,17 +507,17 @@
                 {
                     if (argGenericType.baseType != paramType)
                     {
-                        throw new Exception($"Failed to generate function '{info.name}' due to invalid passed argument type. Expected generic '{paramType.name}' at argument with index {i}, but got generic '{argType.Name}' with another base type '{argGenericType.baseType.Name}'");
+                        throw new BadAstraCode($"Failed to generate function '{info.name}' due to invalid passed argument type. Expected generic '{paramType.name}' at argument with index {i}, but got generic '{argType.Name}' with another base type '{argGenericType.baseType.Name}'");
                     }
                 }
                 else
                 {
-                    throw new Exception($"Failed to generate function '{info.name}' due to invalid passed argument type. Expected generic '{paramType.name}' at argument with index {i}, but got non-generic '{argType.Name}'");
+                    throw new BadAstraCode($"Failed to generate function '{info.name}' due to invalid passed argument type. Expected generic '{paramType.name}' at argument with index {i}, but got non-generic '{argType.Name}'");
                 }
             }
             else if (argType != paramType)
             {
-                throw new Exception($"Failed to generate function '{info.name}' due to invalid passed argument type. Expected '{paramType.name}' at argument with index {i}, but got '{argType.Name}'");
+                throw new BadAstraCode($"Failed to generate function '{info.name}' due to invalid passed argument type. Expected '{paramType.name}' at argument with index {i}, but got '{argType.Name}'");
             }
         }
         

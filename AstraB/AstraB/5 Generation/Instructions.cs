@@ -178,7 +178,7 @@ public class SetValue_Instruction : Instruction
     }
 
     /// <summary>
-    /// Get value of value variable variable (ptr type) and put it into target variable 
+    /// Get value of value variable (ptr type) and put it into target variable 
     /// </summary>
     public static SetValue_Instruction GetValue_ByPointer(ScopeRelativeRbpOffset resultRbpOffset, ScopeRelativeRbpOffset pointerRbpOffset, int sizeInBytes)
     {

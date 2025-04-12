@@ -1,10 +1,7 @@
-﻿public class BadAstraCode(string message) : Exception
+﻿public class BadAstraCode : Exception
 {
-    public string message = message;
-
-    public override string ToString()
+    public BadAstraCode(string message) : base(message)
     {
-        return message;
     }
 }
 

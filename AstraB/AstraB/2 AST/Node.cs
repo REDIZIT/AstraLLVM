@@ -173,10 +173,11 @@ public class Node_Binary : Node
     }
 }
 
-public class Node_CastTo : Node
+public class Node_Cast : Node
 {
     public Node valueToCast;
     public string typeName;
+    public bool isToCast;
 
     public override IEnumerable<Node> EnumerateChildren()
     {
