@@ -215,3 +215,17 @@ public class Node_If : Node
         if (elseBranch != null) yield return elseBranch;
     }
 }
+
+public class Node_Access : Node
+{
+    public Node target;
+    public string name;
+
+    public FunctionInfo functionInfo;
+    public StaticVariable variable;
+
+    public override IEnumerable<Node> EnumerateChildren()
+    {
+        yield return target;
+    }
+}

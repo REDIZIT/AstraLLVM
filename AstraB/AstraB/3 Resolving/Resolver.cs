@@ -18,6 +18,7 @@
             {
                 name = typeNode.name,
                 fields = new(),
+                functions = new(),
                 node = typeNode,
                 genericTypeAliases = typeNode.genericTypeAliases,
             };
@@ -107,6 +108,12 @@
             foreach (string typeName in functionNode.returns)
             {
                 functionInfo.returns.Add(new(module.GetType(typeName), String.Empty));
+            }
+
+            if (functionInfo.parameters.Count > 0 && functionInfo.parameters[0].name == "self")
+            {
+                functionInfo.owner = functionInfo.parameters[0].type;
+                functionInfo.parameters[0].type.functions.Add(functionInfo);
             }
         }
 

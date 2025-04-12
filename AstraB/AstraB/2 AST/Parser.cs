@@ -316,7 +316,7 @@
     
     private static Node FunctionCall()
     {
-        Node left = ConstantNumber();
+        Node left = Access();
 
         if (Check<Token_BracketOpen>())
         {
@@ -343,6 +343,25 @@
             };
         }
 
+        return left;
+    }
+    
+    private static Node Access()
+    {
+        Node left = ConstantNumber();
+        
+        if (Check<Token_Dot>())
+        {
+            Consume<Token_Dot>();
+            Token_Identifier nameIdent = Consume<Token_Identifier>();
+            
+            return new Node_Access()
+            {
+                target = left,
+                name = nameIdent.name
+            };
+        }
+    
         return left;
     }
 

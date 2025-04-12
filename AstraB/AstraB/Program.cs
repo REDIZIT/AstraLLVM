@@ -15,6 +15,7 @@ MyFunction()
     Array<int> arr = pointer to Array<int>
     
     print(get_len(arr))
+    print(arr.get_len())
     
     set(pointer, 0, 11)
     set(pointer, 1, 22)

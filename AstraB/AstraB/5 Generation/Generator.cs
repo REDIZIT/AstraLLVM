@@ -104,7 +104,33 @@
             case Node_Return ret: Return(ret); break;
             case Node_If nodeIf: If(nodeIf); break;
             case Node_Block block: Block(block); break;
+            case Node_Access access: Access(access); break;
             default: throw new Exception($"Failed to generate due to unexpected node '{node}'");
+        }
+    }
+
+    private static void Access(Node_Access access)
+    {
+        Generate(access.target);
+
+        if (access.target is Node_Identifier ident)
+        {
+            if (module.TryGetFunction(ident.name, out FunctionInfo info))
+            {
+                access.functionInfo = info;
+            }
+            else if (currentScope.TryGetVariable(ident.name, out StaticVariable variable))
+            {
+                access.variable = variable;
+            }
+            else
+            {
+                throw new Exception($"Failed to generate access for '{ident.name}' due not any match found");
+            }
+        }
+        else
+        {
+            throw new Exception($"Failed to generate access due to invalid target '{access.target}'");
         }
     }
 
@@ -407,105 +433,137 @@
         }
     }
 
-
     private static void FunctionCall(Node_FunctionCall node)
     {
+        //
+        // Define FunctionInfo and target
+        //
+        StaticVariable target = null;
+        string functionName;
         if (node.functionNode is Node_Identifier ident)
         {
-            FunctionInfo info = module.GetFunction(ident.name);
-
-            
-            if (info.parameters.Count != node.passedArguments.Count)
-            {
-                throw new Exception($"Failed to generate function '{info.name}' due to different count of passed ({node.passedArguments.Count}) and required ({info.parameters.Count}) arguments");
-            }
-
-            
-            // Generate arguments nodes
-            for (int i = 0; i < info.parameters.Count; i++)
-            {
-                FieldInfo paramInfo = info.parameters[i];
-                Node argumentNode = node.passedArguments[i];
-
-                Generate(argumentNode);
-
-                ITypeInfo argType = argumentNode.result.type;
-                TypeInfo paramType = paramInfo.type;
-
-                if (paramType.IsGeneric)
-                {
-                    if (argType is GenericImplementationInfo argGenericType)
-                    {
-                        if (argGenericType.baseType != paramType)
-                        {
-                            throw new Exception($"Failed to generate function '{info.name}' due to invalid passed argument type. Expected generic '{paramType.name}' at argument with index {i}, but got generic '{argType.Name}' with another base type '{argGenericType.baseType.Name}'");
-                        }
-                    }
-                    else
-                    {
-                        throw new Exception($"Failed to generate function '{info.name}' due to invalid passed argument type. Expected generic '{paramType.name}' at argument with index {i}, but got non-generic '{argType.Name}'");
-                    }
-                }
-                else if (argType != paramType)
-                {
-                    throw new Exception($"Failed to generate function '{info.name}' due to invalid passed argument type. Expected '{paramType.name}' at argument with index {i}, but got '{argType.Name}'");
-                }
-            }
-            
-            
-            // Generate placeholders for returns
-            if (info.returns != null)
-            {
-                if (info.returns.Count > 1)
-                {
-                    throw new NotSupportedException("Only 1 function return variable supported yet.");
-                }
-                else if (info.returns.Count == 1)
-                {
-                    FieldInfo retInfo = info.returns[0];
-                    node.result = AllocateVariable(retInfo.type, NextTempName());
-                }
-            }
-
-            
-            // Collect info about pushed arguments and write byte-code for pushing
-            // This info is required to write byte-code for deallocation
-        
-            // Here, we DO NOT PROMISE/PROVIDE any arguments
-            // Here, we only write byte-code for pushing these arguments
-            
-            int pushedArgumentsSizeInBytes = 0;
-            List<StaticVariable> argumentVariables = new();
-            
-            for (int i = 0; i < info.parameters.Count; i++)
-            {
-                Node argumentNode = node.passedArguments[i];
-
-                StaticVariable argumentVariable = AllocateVariable(argumentNode.result.type, NextTempName());
-                argumentVariables.Add(argumentVariable);
-                pushedArgumentsSizeInBytes += argumentVariable.sizeInBytes;
-                
-                SetValue_Var_Var(argumentVariable, argumentNode.result);
-            }
-            
-            
-            Add(new FunctionCall_Instruction(info.inModuleIndex, info.module != module));
-            
-            
-            // Write byte-code for deallocation of pushed arguments
-            // Here, we DO NOT DEALLOCATE variables, but bytes because
-            // we DID NOT give any PROMISES/PROVIDED variables, but only write byte-code
-            Add(new DeallocateStackBytes_Instruction(pushedArgumentsSizeInBytes));
-
-            for (int i = argumentVariables.Count - 1; i >= 0; i--)
-            {
-                StaticVariable argument = argumentVariables[i];
-                currentScope.UnregisterLocalVariable(argument);
-            }
+            functionName = ident.name;
+        }
+        else if (node.functionNode is Node_Access access)
+        {
+            Generate(access);
+            functionName = access.name;
+            target = access.variable;
         }
         else
         {
             throw new Exception($"Failed to generate {nameof(Node_FunctionCall)} due to unknown functionNode ({node.functionNode})");
+        }
+        
+        
+        FunctionInfo info = module.GetFunction(functionName);
+
+        
+        //
+        // Generate argument Nodes
+        //
+        List<StaticVariable> passedArguments = new();
+        
+        // Pass 'self' argument 
+        if (info.owner != null)
+        {
+            if (target != null) passedArguments.Add(target);
+        }
+        
+        foreach (Node argNode in node.passedArguments)
+        {
+            Generate(argNode);
+            passedArguments.Add(argNode.result);
+        }
+
+        if (info.parameters.Count != passedArguments.Count)
+        {
+            throw new Exception($"Failed to generate function '{info.name}' due to different count of passed ({passedArguments.Count}) and required ({info.parameters.Count}) arguments");
+        }
+
+        
+        //
+        // Arguments and parameters type-check
+        //
+        for (int i = 0; i < info.parameters.Count; i++)
+        {
+            FieldInfo paramInfo = info.parameters[i];
+            StaticVariable argumentResult = passedArguments[i];
+
+            ITypeInfo argType = argumentResult.type;
+            TypeInfo paramType = paramInfo.type;
+
+            if (paramType.IsGeneric)
+            {
+                if (argType is GenericImplementationInfo argGenericType)
+                {
+                    if (argGenericType.baseType != paramType)
+                    {
+                        throw new Exception($"Failed to generate function '{info.name}' due to invalid passed argument type. Expected generic '{paramType.name}' at argument with index {i}, but got generic '{argType.Name}' with another base type '{argGenericType.baseType.Name}'");
+                    }
+                }
+                else
+                {
+                    throw new Exception($"Failed to generate function '{info.name}' due to invalid passed argument type. Expected generic '{paramType.name}' at argument with index {i}, but got non-generic '{argType.Name}'");
+                }
+            }
+            else if (argType != paramType)
+            {
+                throw new Exception($"Failed to generate function '{info.name}' due to invalid passed argument type. Expected '{paramType.name}' at argument with index {i}, but got '{argType.Name}'");
+            }
+        }
+        
+        
+        //
+        // Generate instructions for placeholders of returns
+        //
+        if (info.returns != null)
+        {
+            if (info.returns.Count > 1)
+            {
+                throw new NotSupportedException("Only 1 function return variable supported yet.");
+            }
+            else if (info.returns.Count == 1)
+            {
+                FieldInfo retInfo = info.returns[0];
+                node.result = AllocateVariable(retInfo.type, NextTempName());
+            }
+        }
+
+        
+        // Collect info about pushed arguments and write byte-code for pushing
+        // This info is required to write byte-code for deallocation
+    
+        // Here, we DO NOT PROMISE/PROVIDE any arguments
+        // Here, we only write byte-code for pushing these arguments
+        
+        int pushedArgumentsSizeInBytes = 0;
+        List<StaticVariable> argumentVariables = new();
+        
+        for (int i = 0; i < info.parameters.Count; i++)
+        {
+            StaticVariable argumentResult = passedArguments[i];
+
+            StaticVariable argumentVariable = AllocateVariable(argumentResult.type, NextTempName());
+            argumentVariables.Add(argumentVariable);
+            pushedArgumentsSizeInBytes += argumentVariable.sizeInBytes;
+            
+            SetValue_Var_Var(argumentVariable, argumentResult);
+        }
+        
+        
+        Add(new FunctionCall_Instruction(info.inModuleIndex, info.module != module));
+        
+        
+        // Write byte-code for deallocation of pushed arguments
+        // Here, we DO NOT DEALLOCATE variables, but bytes because
+        // we DID NOT give any PROMISES/PROVIDED variables, but only write byte-code
+        Add(new DeallocateStackBytes_Instruction(pushedArgumentsSizeInBytes));
+
+        for (int i = argumentVariables.Count - 1; i >= 0; i--)
+        {
+            StaticVariable argument = argumentVariables[i];
+            currentScope.UnregisterLocalVariable(argument);
         }
     }
 

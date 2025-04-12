@@ -78,6 +78,11 @@ public class Scope_GenerationPhase
         throw new Exception($"Variable '{name}' not found in current or parents scope");
     }
 
+    public bool TryGetVariable(string name, out StaticVariable variable)
+    {
+        return variableByName.TryGetValue(name, out variable);
+    }
+
     public ScopeRelativeRbpOffset GetRelativeRBP(StaticVariable askedVariable)
     {
         if (askedVariable == null) throw new Exception("Failed to get relative rbp due to null variable");

@@ -158,6 +158,7 @@ public class TypeInfo : ITypeInfo
 
     public string name;
     public List<FieldInfo> fields;
+    public List<FunctionInfo> functions;
     public Node_TypeDeclaration node;
 
     public bool isPrimitive;
@@ -202,16 +203,13 @@ public class FunctionInfo
     public List<FieldInfo> parameters;
     public List<FieldInfo> returns;
     
+    public ITypeInfo owner;
+    
     public Module module;
     public int inModuleIndex;
     
     public FunctionInfo()
     {
-    }
-
-    public FunctionInfo(string name)
-    {
-        this.name = name;
     }
 }
 
