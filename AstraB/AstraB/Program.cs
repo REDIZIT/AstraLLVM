@@ -13,24 +13,19 @@ MyFunction()
     ptr pointer = alloc_arr(4)
     
     Array<int> arr = pointer
-    
 
     arr.set(0, 11)
     arr.set(1, 22)
     arr.set(2, 33)
-    --set3, 44)
     
-    --arr.set(0, 77)
-    --arr.set(1, 88)
-    
-    get(pointer, 0)
-    get(pointer, 1)
-    get(pointer, 2)
-    get(pointer, 3)
-    get(pointer, 4)
-    get(pointer, 5)
-    get(pointer, 6)
-    get(pointer, 7)
+    arr.get(0)
+    arr.get(1)
+    arr.get(2)
+    arr.get(3)
+    arr.get(4)
+    arr.get(5)
+    arr.get(6)
+    arr.get(7)
 }
 
 alloc_arr(int length) -> ptr
@@ -46,15 +41,17 @@ set(Array self, int index, int value)
     pointer + 4 + index * 4 ~= value
 }
 
-get(ptr pointer, int index)
+get(Array self, int index)
 {
-    ptr p = pointer + 4 + index * 4
+    if index >= self.get_len() panic()
+    ptr p = self + 4 + index * 4
     print_ptr(p)
 }
 
 get_len(Array self) -> int
 {
-    int len = self to ptr to int
+    ptr pointer = self
+    int len = pointer to int
     return len
 }
 

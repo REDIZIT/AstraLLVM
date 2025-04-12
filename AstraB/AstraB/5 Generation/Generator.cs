@@ -506,13 +506,12 @@
                 if (argType is GenericImplementationInfo argGenericType)
                 {
                     if (argGenericType.baseType != paramType)
-                    {
                         throw new BadAstraCode($"Failed to generate function '{info.name}' due to invalid passed argument type. Expected generic '{paramType.name}' at argument with index {i}, but got generic '{argType.Name}' with another base type '{argGenericType.baseType.Name}'");
-                    }
                 }
                 else
                 {
-                    throw new BadAstraCode($"Failed to generate function '{info.name}' due to invalid passed argument type. Expected generic '{paramType.name}' at argument with index {i}, but got non-generic '{argType.Name}'");
+                    if (((TypeInfo)argType).IsGeneric == false)
+                        throw new BadAstraCode($"Failed to generate function '{info.name}' due to invalid passed argument type. Expected generic '{paramType.name}' at argument with index {i}, but got non-generic '{argType.Name}'");
                 }
             }
             else if (argType != paramType)

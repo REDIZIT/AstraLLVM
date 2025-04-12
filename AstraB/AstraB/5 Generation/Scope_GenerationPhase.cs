@@ -72,15 +72,18 @@ public class Scope_GenerationPhase
 
     public StaticVariable GetVariable(string name)
     {
-        if (variableByName.TryGetValue(name, out StaticVariable var)) return var;
-
-        if (parent != null) return parent.GetVariable(name);
+        if (TryGetVariable(name, out StaticVariable variable)) return variable;
         throw new Exception($"Variable '{name}' not found in current or parents scope");
     }
 
     public bool TryGetVariable(string name, out StaticVariable variable)
     {
-        return variableByName.TryGetValue(name, out variable);
+        if (variableByName.TryGetValue(name, out variable)) return true;
+
+        if (parent != null) return parent.TryGetVariable(name, out variable);
+
+        variable = null;
+        return false;
     }
 
     public ScopeRelativeRbpOffset GetRelativeRBP(StaticVariable askedVariable)
