@@ -50,6 +50,9 @@ public class ClassTypeInfo : TypeInfo
         return "%" + name;
     }
 }
+
+
+
 public class TypeInfo
 {
     public string name;
@@ -59,7 +62,6 @@ public class TypeInfo
         return name;
     }
 }
-
 
 public class VariableRawData
 {

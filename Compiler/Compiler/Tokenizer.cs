@@ -5,6 +5,7 @@
         { "(", typeof(Token_BracketOpen) },
         { ")", typeof(Token_BracketClose) },
         { "=", typeof(Token_Assign) },
+        { "~=", typeof(Token_AssignByPointer) },
         { "{", typeof(Token_BlockOpen) },
         { "}", typeof(Token_BlockClose) },
         { "if", typeof(Token_If) },
@@ -21,6 +22,7 @@
         { ".", typeof(Token_Dot) },
         { "[", typeof(Token_SquareBracketOpen) },
         { "]", typeof(Token_SquareBracketClose) },
+        { "to", typeof(Token_CastTo) },
     };
 
     public static List<Token> Tokenize(string rawCode)
@@ -58,10 +60,7 @@
                 {
                     if (int.TryParse(word, out int _))
                     {
-                        tokens.Add(new Token_Constant()
-                        {
-                            value = word
-                        });
+                        tokens.Add(new Token_Constant(word));
                     }
                     word = "";
                 }
