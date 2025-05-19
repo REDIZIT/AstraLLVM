@@ -141,58 +141,7 @@
     }
 }
 
-public interface ITypeInfo
-{
-    string Name { get; }
-    int SizeInBytes { get; }
-    bool IsPrimitive { get; }
-    int RefSizeInBytes => IsPrimitive ? SizeInBytes : Constants.POINTER_SIZE_IN_BYTES;
-}
 
-public class TypeInfo : ITypeInfo
-{
-    public string Name => name;
-    public int SizeInBytes => sizeInBytes;
-    public bool IsGeneric => genericTypeAliases != null && genericTypeAliases.Count > 0;
-    public bool IsPrimitive => isPrimitive;
-
-    public string name;
-    public List<FieldInfo> fields;
-    public List<FunctionInfo> functions;
-    public Node_TypeDeclaration node;
-
-    public bool isPrimitive;
-    public int sizeInBytes;
-    
-    public List<Token_Identifier> genericTypeAliases;
-    
-    public Module module;
-    public int inModuleIndex;
-
-    public TypeInfo()
-    {
-    }
-
-    public TypeInfo(string name)
-    {
-        this.name = name;
-    }
-}
-
-public class GenericImplementationInfo : ITypeInfo
-{
-    public string Name => baseType.name;
-    public int SizeInBytes => baseType.sizeInBytes;
-    public bool IsPrimitive => baseType.IsPrimitive;
-
-    public TypeInfo baseType;
-    public List<TypeInfo> genericTypes;
-
-    public override string ToString()
-    {
-        return baseType.name + "<" + string.Join(", ", genericTypes.Select(t => t.name)) + ">";
-    }
-}
 
 
 public class FunctionInfo
@@ -215,14 +164,15 @@ public class FunctionInfo
 
 public class FieldInfo
 {
-    public TypeInfo type;
+    public ITypeInfo type;
     public string name;
+    public int offsetInBytes;
 
     public FieldInfo()
     {
     }
 
-    public FieldInfo(TypeInfo type, string name)
+    public FieldInfo(ITypeInfo type, string name)
     {
         this.type = type;
         this.name = name;

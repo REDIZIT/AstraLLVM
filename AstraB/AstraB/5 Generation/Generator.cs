@@ -122,6 +122,14 @@
             else if (currentScope.TryGetVariable(ident.name, out StaticVariable variable))
             {
                 access.variable = variable;
+
+                FieldInfo fieldInfo = variable.type.Fields.FirstOrDefault(f => f.name == access.name);
+                if (fieldInfo != null)
+                {
+                    // access.variable = variable.CreateSliceVariable(fieldInfo.offsetInBytes, fieldInfo.type);
+                    access.variable = variable.CreateFieldVariable(fieldInfo);
+                    access.result = access.variable;
+                }
             }
             else
             {
@@ -340,51 +348,53 @@
     {
         Generate(node.left);
         StaticVariable variable = node.left.result;
+
+        int offsetInBytes = variable.IsField ? variable.sliceOffsetInBytes : 0;
         
         Generate(node.value);
 
         if (node.isByPointer)
         {
-            SetValue_Var_To_Ptr(variable, node.value.result);
+            SetValue_Var_To_Ptr(variable, node.value.result, offsetInBytes);
         }
         else
         {
-            SetValue_Var_Var(variable, node.value.result);   
+            SetValue_Var_Var(variable, node.value.result, offsetInBytes);   
         }
     }
 
-    private static void SetValue_Var_Var(StaticVariable dest, StaticVariable value)
+    private static void SetValue_Var_Var(StaticVariable dest, StaticVariable value, int offsetInBytes = 0)
     {
         ScopeRelativeRbpOffset destOffset = currentScope.GetRelativeRBP(dest);
         ScopeRelativeRbpOffset valueOffset = currentScope.GetRelativeRBP(value);
-        Add(SetValue_Instruction.Variable_to_Variable(destOffset, valueOffset, dest.sizeInBytes));
+        Add(SetValue_Instruction.Variable_to_Variable(destOffset, valueOffset, dest.sizeInBytes, offsetInBytes).WithDebug(dest, value));
     }
 
     private static void SetValue_Var_Const(StaticVariable dest, byte[] value)
     {
         ScopeRelativeRbpOffset destOffset = currentScope.GetRelativeRBP(dest);
-        Add(SetValue_Instruction.Const_to_Variable(destOffset, value));
+        Add(SetValue_Instruction.Const_to_Variable(destOffset, value).WithDebug(dest, null));
     }
     
     private static void GetPointer_To_Variable(StaticVariable dest, StaticVariable value)
     {
         ScopeRelativeRbpOffset destOffset = currentScope.GetRelativeRBP(dest);
         ScopeRelativeRbpOffset valueOffset = currentScope.GetRelativeRBP(value);
-        Add(SetValue_Instruction.GetPointer_To_Variable(destOffset, valueOffset, dest.sizeInBytes));
+        Add(SetValue_Instruction.GetPointer_To_Variable(destOffset, valueOffset, dest.sizeInBytes).WithDebug(dest, value));
     }
     
-    private static void SetValue_Var_To_Ptr(StaticVariable dest, StaticVariable value)
+    private static void SetValue_Var_To_Ptr(StaticVariable dest, StaticVariable value, int offsetInBytes = 0)
     {
         ScopeRelativeRbpOffset destOffset = currentScope.GetRelativeRBP(dest);
         ScopeRelativeRbpOffset valueOffset = currentScope.GetRelativeRBP(value);
-        Add(SetValue_Instruction.SetValue_ByPointer(destOffset, valueOffset, dest.sizeInBytes));
+        Add(SetValue_Instruction.SetValue_ByPointer(destOffset, valueOffset, dest.sizeInBytes, offsetInBytes).WithDebug(dest, value));
     }
     
     private static void GetValue_ByPointer(StaticVariable result, StaticVariable pointer)
     {
         ScopeRelativeRbpOffset resultOffset = currentScope.GetRelativeRBP(result);
         ScopeRelativeRbpOffset pointerOffset = currentScope.GetRelativeRBP(pointer);
-        Add(SetValue_Instruction.GetValue_ByPointer(resultOffset, pointerOffset, result.sizeInBytes));
+        Add(SetValue_Instruction.GetValue_ByPointer(resultOffset, pointerOffset, result.sizeInBytes).WithDebug(result, pointer));
     }
     
     private static void FunctionDeclaration(Node_FunctionDeclaration node)
@@ -499,24 +509,24 @@
             StaticVariable argumentResult = passedArguments[i];
 
             ITypeInfo argType = argumentResult.type;
-            TypeInfo paramType = paramInfo.type;
+            ITypeInfo paramType = paramInfo.type;
 
             if (paramType.IsGeneric)
             {
                 if (argType is GenericImplementationInfo argGenericType)
                 {
                     if (argGenericType.baseType != paramType)
-                        throw new BadAstraCode($"Failed to generate function '{info.name}' due to invalid passed argument type. Expected generic '{paramType.name}' at argument with index {i}, but got generic '{argType.Name}' with another base type '{argGenericType.baseType.Name}'");
+                        throw new BadAstraCode($"Failed to generate function '{info.name}' due to invalid passed argument type. Expected generic '{paramType.Name}' at argument with index {i}, but got generic '{argType.Name}' with another base type '{argGenericType.baseType.Name}'");
                 }
                 else
                 {
                     if (((TypeInfo)argType).IsGeneric == false)
-                        throw new BadAstraCode($"Failed to generate function '{info.name}' due to invalid passed argument type. Expected generic '{paramType.name}' at argument with index {i}, but got non-generic '{argType.Name}'");
+                        throw new BadAstraCode($"Failed to generate function '{info.name}' due to invalid passed argument type. Expected generic '{paramType.Name}' at argument with index {i}, but got non-generic '{argType.Name}'");
                 }
             }
             else if (argType != paramType)
             {
-                throw new BadAstraCode($"Failed to generate function '{info.name}' due to invalid passed argument type. Expected '{paramType.name}' at argument with index {i}, but got '{argType.Name}'");
+                throw new BadAstraCode($"Failed to generate function '{info.name}' due to invalid passed argument type. Expected '{paramType.Name}' at argument with index {i}, but got '{argType.Name}'");
             }
         }
         
@@ -607,12 +617,4 @@ public enum OpCode : byte
     Quit,
     If,
     Jump,
-}
-
-public class StaticVariable
-{
-    public string name;
-    public int rbpOffset, sizeInBytes;
-    public ITypeInfo type;
-    public Scope_GenerationPhase scope;
 }

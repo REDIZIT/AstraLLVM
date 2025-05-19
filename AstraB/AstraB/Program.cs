@@ -4,12 +4,25 @@
     {
         string exampleCode = """
 
-MyType { int a; long b }
+MyType { int a; int b }
 
 Array<T> { }
 
 MyFunction()
 {
+    MyType inst = alloc(8)
+
+    inst.b = 42
+    
+    --print(inst.a)
+    --print(inst.b)
+    
+    ptr pointer = inst
+    print_ptr(pointer)
+    pointer = pointer + 4
+    print_ptr(pointer)
+
+    ---
     ptr pointer = alloc_arr(4)
     
     Array<int> arr = pointer
@@ -26,6 +39,7 @@ MyFunction()
     arr.get(5)
     arr.get(6)
     arr.get(7)
+    ---
 }
 
 alloc_arr(int length) -> ptr
@@ -60,28 +74,27 @@ get_len(Array self) -> int
 
         string anotherExample = """
 
+MyType { int a; int b }
+
 main()
 {
-    int value = 234
-    print(value)
+    MyType inst = alloc(8)
     
-    if value > 1
-    {
-        int a
-        int b
-        print(11)
-        print(22)
-    }
+    inst.a = 42
     
-    int anotherValue = 77
-    print(value)
-    print(anotherValue)
+    print(inst.a)
+    print(inst.b)
+    
+    ptr pointer = inst
+    print_ptr(pointer)
+    pointer = pointer + 4
+    print_ptr(pointer)
 }
 
 """;
 
         Lexer lexer = new();
-        var tokens = lexer.Tokenize(exampleCode, includeSpacesAndEOF: false);
+        var tokens = lexer.Tokenize(anotherExample, includeSpacesAndEOF: false);
 
         var ast = Parser.Parse(tokens);
 

@@ -46,7 +46,7 @@
 
 public abstract class Instruction
 {
-    public Inverval bytecodeRange;
+    public Interval bytecodeRange;
     
     public abstract void Encode(InstructionEncoder encoder);
 }
@@ -72,6 +72,15 @@ public class AllocateVariable_Instruction : Instruction
     {
         this.staticVariable = staticVariable;
         return this;
+    }
+
+    public override string ToString()
+    {
+        if (this.staticVariable != null)
+        {
+            return this.staticVariable.name;
+        }
+        return base.ToString();
     }
 }
 
@@ -116,22 +125,33 @@ public class SetValue_Instruction : Instruction
     public ScopeRelativeRbpOffset targetRbpOffset, valueRbpOffset;
     public int sizeInBytes;
     public byte[] constant;
+    public int offsetInBytes;
+
+    public StaticVariable targetVariable, valueVariable;
 
     private SetValue_Instruction()
     {
     }
 
+    public SetValue_Instruction WithDebug(StaticVariable targetVariable, StaticVariable valueVariable)
+    {
+        this.targetVariable = targetVariable;
+        this.valueVariable = valueVariable;
+        return this;
+    }
+
     /// <summary>
     /// Copy value from value variable to target variable
     /// </summary>
-    public static SetValue_Instruction Variable_to_Variable(ScopeRelativeRbpOffset targetRbpOffset, ScopeRelativeRbpOffset valueRbpOffset, int sizeInBytes)
+    public static SetValue_Instruction Variable_to_Variable(ScopeRelativeRbpOffset targetRbpOffset, ScopeRelativeRbpOffset valueRbpOffset, int sizeInBytes, int offsetInBytes = 0)
     {
         return new SetValue_Instruction()
         {
             mode = 0,
             targetRbpOffset = targetRbpOffset,
             valueRbpOffset = valueRbpOffset,
-            sizeInBytes = sizeInBytes
+            sizeInBytes = sizeInBytes,
+            offsetInBytes = offsetInBytes
         };
     }
 
@@ -166,14 +186,15 @@ public class SetValue_Instruction : Instruction
     /// <summary>
     /// Set value of target variable (ptr type) from value variable
     /// </summary>
-    public static SetValue_Instruction SetValue_ByPointer(ScopeRelativeRbpOffset targetRbpOffset, ScopeRelativeRbpOffset valueRbpOffset, int sizeInBytes)
+    public static SetValue_Instruction SetValue_ByPointer(ScopeRelativeRbpOffset targetRbpOffset, ScopeRelativeRbpOffset valueRbpOffset, int sizeInBytes, int offsetInBytes = 0)
     {
         return new SetValue_Instruction()
         {
             mode = 3,
             targetRbpOffset = targetRbpOffset,
             valueRbpOffset = valueRbpOffset,
-            sizeInBytes = sizeInBytes
+            sizeInBytes = sizeInBytes,
+            offsetInBytes = offsetInBytes
         };
     }
 
@@ -196,6 +217,7 @@ public class SetValue_Instruction : Instruction
         encoder.Add(OpCode.Variable_SetValue);
         encoder.Add(mode);
         encoder.Add(sizeInBytes);
+        encoder.Add(offsetInBytes);
         encoder.Add(targetRbpOffset);
         
         if (mode == 1)
@@ -206,6 +228,13 @@ public class SetValue_Instruction : Instruction
         {
             encoder.Add(valueRbpOffset);
         }
+    }
+
+    public override string ToString()
+    {
+        if (targetVariable != null && valueVariable != null) return $"{targetVariable.name} = {valueVariable.name}";
+        if (targetVariable != null) return $"{targetVariable.name} = const";
+        return base.ToString();
     }
 }
 

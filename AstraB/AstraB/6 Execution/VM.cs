@@ -171,11 +171,16 @@ public partial class VM
     {
         int mode = NextInt();
         int sizeInBytes = NextInt();
+        int offsetInBytes = NextInt();
 
         ScopeRelativeRbpOffset destRbpOffset = NextRBP();
         StackAddress destStackAddress = ToAbs(destRbpOffset);
         HeapAddress destHeapAddress = stack.ReadInt(destStackAddress);
 
+        if (offsetInBytes > 0)
+        {
+            destHeapAddress += offsetInBytes;
+        }
 
         if (mode == 0)
         {

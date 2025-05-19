@@ -30,27 +30,24 @@
         //
         foreach (TypeInfo type in module.types)
         {
+            int totalSizeInBytes = 0;
             foreach (Node_FieldDeclaration fieldNode in type.node.block.children.Where(n => n is Node_FieldDeclaration))
             {
                 TypeInfo fieldType = module.GetType(fieldNode.typeName);
                 type.fields.Add(new FieldInfo()
                 {
                     type = fieldType,
-                    name = fieldNode.fieldName
+                    name = fieldNode.fieldName,
+                    offsetInBytes = totalSizeInBytes
                 });
+                totalSizeInBytes += fieldType.isPrimitive ? fieldType.sizeInBytes : pointerSizeInBytes;
             }
+
+            type.sizeInBytes = totalSizeInBytes;
         }
         
         //
-        // Pass 3: Calculate sizeInBytes
-        //
-        foreach (TypeInfo type in module.types)
-        {
-            type.sizeInBytes = type.fields.Sum(f => f.type.isPrimitive ? f.type.sizeInBytes : pointerSizeInBytes);
-        }
-        
-        //
-        // Pass 4: Found and Register Generics
+        // Pass 3: Found and Register Generics
         //
         foreach (Node child in root.EnumerateEachChild())
         {
@@ -85,7 +82,7 @@
         }
         
         //
-        // Pass 5: Register functions
+        // Pass 4: Register functions
         //
         foreach (Node_FunctionDeclaration functionNode in root.children.Where(n => n is Node_FunctionDeclaration))
         {
@@ -113,7 +110,7 @@
             if (functionInfo.parameters.Count > 0 && functionInfo.parameters[0].name == "self")
             {
                 functionInfo.owner = functionInfo.parameters[0].type;
-                functionInfo.parameters[0].type.functions.Add(functionInfo);
+                functionInfo.parameters[0].type.Functions.Add(functionInfo);
             }
         }
 

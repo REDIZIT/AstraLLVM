@@ -89,6 +89,8 @@ public class Scope_GenerationPhase
     public ScopeRelativeRbpOffset GetRelativeRBP(StaticVariable askedVariable)
     {
         if (askedVariable == null) throw new Exception("Failed to get relative rbp due to null variable");
+
+        if (askedVariable.IsField) askedVariable = askedVariable.sliceParent;
         
         if (variableByName.ContainsValue(askedVariable))
         {
@@ -99,6 +101,8 @@ public class Scope_GenerationPhase
         
         int relativeRBP = 0;
         Scope_GenerationPhase scope = parent;
+
+        // if (askedVariable.IsSlice) relativeRBP += askedVariable.rbpOffset;
 
         while (scope != null)
         {
